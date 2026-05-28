@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canopy - Enterprise MSO Onboarding Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel Standalone for live in-browser JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              animation: {
+                'spin-slow': 'spin 12s linear infinite',
+              }
+            }
+          }
+        }
+    </script>
+    
+    <style>
+        /* Smooth Custom Transitions and Webkit scrollbar optimizations */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-emerald-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // -------------------------------------------------------------
+        // Lightweight Self-Contained SVG Icon Library
+        // -------------------------------------------------------------
+        const Icon = ({ name, className = "w-5 h-5", ...props }) => {
+          const icons = {
+            Building2: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18" />
+                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+                <path d="M10 6h4" />
+                <path d="M10 10h4" />
+                <path d="M10 14h4" />
+                <path d="M10 18h4" />
+              </svg>
+            ),
+            Leaf: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 2 5.5a7 7 0 0 1-7 7c-1.5 0-3-.5-3-.5" />
+                <path d="M19 2c-2.26 4.33-5.27 7.14-8 10" />
+              </svg>
+            ),
+            Truck: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <rect width="14" height="8" x="1" y="3" rx="2" ry="2" />
+                <rect width="6" height="5" x="17" y="6" rx="1" ry="1" />
+                <path d="M15 13H9" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+            ),
+            Store: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
+                <path d="M2 7h20" />
+                <path d="M22 7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2" />
+              </svg>
+            ),
+            Users: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            ),
+            Settings: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            ),
+            Database: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+              </svg>
+            ),
+            Plus: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+            ),
+            Eye: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            ),
+            X: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            ),
+            CheckCircle2: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <circle cx="12" cy="12" r="10" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+            ),
+            AlertTriangle: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <line x1="12" x2="12" y1="9" y2="13" />
+                <line x1="12" x2="12.01" y1="17" y2="17" />
+              </svg>
+            ),
+            ArrowRight: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            ),
+            ArrowLeft: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M19 12H5" />
+                <path d="m12 19-7-7 7-7" />
+              </svg>
+            ),
+            UploadCloud: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                <path d="M12 12v9" />
+                <path d="m8 16 4-4 4 4" />
+              </svg>
+            ),
+            FileText: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                <path d="M10 9H8" />
+                <path d="M16 13H8" />
+                <path d="M16 17H8" />
+              </svg>
+            ),
+            Check: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            ),
+            ChevronRight: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            ),
+            FileSpreadsheet: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                <path d="M8 13h8" />
+                <path d="M8 17h8" />
+                <path d="M10 9H8" />
+                <path d="M12 13v4" />
+              </svg>
+            ),
+            Map: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" />
+                <path d="M9 3v15" />
+                <path d="M15 6v15" />
+              </svg>
+            ),
+            ShieldCheck: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M20 13c0 5-3.5 7.5-7.66 9.7a1 1 0 0 1-.68 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 .76-.97l8-2a1 1 0 0 1 .48 0l8 2A1 1 0 0 1 20 6Z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+            ),
+            Percent: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <line x1="19" x2="5" y1="5" y2="19" />
+                <circle cx="6.5" cy="6.5" r="2.5" />
+                <circle cx="17.5" cy="17.5" r="2.5" />
+              </svg>
+            ),
+            AlertCircle: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" x2="12" y1="8" y2="12" />
+                <line x1="12" x2="12.01" y1="16" y2="16" />
+              </svg>
+            ),
+            Key: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+              </svg>
+            ),
+            Lock: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            ),
+            DollarSign: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <line x1="12" x2="12" y1="1" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            ),
+            Clock: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            ),
+            ShieldAlert: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M20 13c0 5-3.5 7.5-7.66 9.7a1 1 0 0 1-.68 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 .76-.97l8-2a1 1 0 0 1 .48 0l8 2A1 1 0 0 1 20 6v7z" />
+                <line x1="12" x2="12" y1="8" y2="12" />
+                <line x1="12" x2="12.01" y1="16" y2="16" />
+              </svg>
+            ),
+            BadgePercent: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M3.85 8.62a4 4 0 0 1-1.78-4.72 4 4 0 0 1 4.71-1.78 4 4 0 0 1 4.7 1.78 4 4 0 0 1 1.78 4.72 4 4 0 0 1-4.71 1.78 4 4 0 0 1-4.7-1.78z" />
+                <path d="M20.15 15.38a4 4 0 0 1 1.78 4.72 4 4 0 0 1-4.71 1.78 4 4 0 0 1-4.7-1.78 4 4 0 0 1-1.78-4.72 4 4 0 0 1 4.71-1.78 4 4 0 0 1 4.7 1.78z" />
+                <line x1="19" x2="5" y1="5" y2="19" />
+                <circle cx="6.5" cy="6.5" r="1.5" />
+                <circle cx="17.5" cy="17.5" r="1.5" />
+              </svg>
+            ),
+            Trash2: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                <line x1="10" x2="10" y1="11" y2="17" />
+                <line x1="14" x2="14" y1="11" y2="17" />
+              </svg>
+            ),
+            Download: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" x2="12" y1="15" y2="3" />
+              </svg>
+            ),
+            CheckSquare: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            ),
+            RefreshCw: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M3 21v-5h5" />
+              </svg>
+            ),
+            Layers: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
+            ),
+            Send: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <line x1="22" x2="11" y1="2" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            ),
+            UserCheck: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <polyline points="16 11 18 13 22 9" />
+              </svg>
+            ),
+            Shield: (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M20 13c0 5-3.5 7.5-7.66 9.7a1 1 0 0 1-.68 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 .76-.97l8-2a1 1 0 0 1 .48 0l8 2A1 1 0 0 1 20 6v7z" />
+              </svg>
+            )
+          };
+
+          return icons[name] || (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          );
+        };
+
+        // Shared Mock Users for Dropdowns and System Assignments
+        const MOCK_USERS = [
+          { id: '1', name: 'Sarah Jenkins', title: 'Director of Cultivation' },
+          { id: '2', name: 'David Miller', title: 'Lead Master Grower' },
+          { id: '3', name: 'Elena Rostova', title: 'Lab Director & Extraction Lead' },
+          { id: '4', name: 'Marcus Vance', title: 'Chief Compliance Officer' },
+          { id: '5', name: 'Chloe Chen', title: 'VP of Retail Operations' },
+          { id: '6', name: 'Robert Vance', title: 'General Manager' },
+          { id: '7', name: 'Tamara Woods', title: 'CFO / Controller' }
+        ];
+
+        const CanopyOnboarding = () => {
+          const [activeMainTab, setActiveMainTab] = useState('Onboarding'); // 'Onboarding' or 'State Licenses'
+          const [step, setStep] = useState(1);
+          const [msoModel, setMsoModel] = useState(null);
+          const [activeTab, setActiveTab] = useState('');
+          const [previewModal, setPreviewModal] = useState({ isOpen: false, dept: '' });
+          const [toast, setToast] = useState(null);
+          
+          // State for Personnel Designations (now embedded at the top of tabs)
+          const [pocs, setPocs] = useState({});
+
+          // Helper for trigger safe in-app notifications
+          const triggerToast = (msg) => {
+            setToast(msg);
+            setTimeout(() => setToast(null), 4000);
+          };
+
+          // -------------------------------------------------------------
+          // Stateful Arrays for Editable Lists
+          // -------------------------------------------------------------
+          const [phiData, setPhiData] = useState([
+            { id: '1', chemical: 'Myclobutanil', days: '14' },
+            { id: '2', chemical: 'Abamectin', days: '21' }
+          ]);
+
+          const [benchScales, setBenchScales] = useState([
+            { id: '1', model: 'Ohaus Defender 3000', serial: 'SN-93810-DF' },
+            { id: '2', model: 'Rice Lake BenchPro 500', serial: 'SN-44120-RL' }
+          ]);
+
+          const [dryCureRooms, setDryCureRooms] = useState([
+            { id: '1', room: 'Dry Room Alpha', capacity: '1,200 lbs' },
+            { id: '2', room: 'Cure Vault 1', capacity: '600 lbs' }
+          ]);
+
+          const [wasteReasons, setWasteReasons] = useState([
+            { id: '1', code: 'STEM_DISPOSAL', desc: 'Stems removed during bucking' },
+            { id: '2', code: 'MOISTURE_LOSS', desc: 'Natural water weight loss during drying' },
+            { id: '3', code: 'ROTTEN_FLOWER', desc: 'Bud rot or contamination disposal' }
+          ]);
+
+          const [deliveryTaxes, setDeliveryTaxes] = useState([
+            { id: '1', zone: 'Denver County (80201)', rate: '15.25' },
+            { id: '2', zone: 'Arapahoe County (80012)', rate: '17.50' }
+          ]);
+
+          const [destructionAuthorities, setDestructionAuthorities] = useState([
+            { id: '1', userId: '1' }, // Sarah Jenkins
+            { id: '2', userId: '4' }  // Marcus Vance
+          ]);
+
+          // -------------------------------------------------------------
+          // POS Integration Dashboard State
+          // -------------------------------------------------------------
+          const [posIntegrations, setPosIntegrations] = useState({
+            dutchie: { connected: false, key: '', locationId: '', connecting: false },
+            treez: { connected: false, key: '', locationId: '', connecting: false },
+            cova: { connected: false, key: '', locationId: '', connecting: false },
+            flowhub: { connected: false, key: '', locationId: '', connecting: false },
+            blaze: { connected: false, key: '', locationId: '', connecting: false },
+            jane: { connected: false, key: '', locationId: '', connecting: false }
+          });
+
+          const [activePosSetup, setActivePosSetup] = useState(null);
+
+          // -------------------------------------------------------------
+          // State Licenses Configuration & Management
+          // -------------------------------------------------------------
+          const [licenses, setLicenses] = useState([
+            { id: '1', state: 'Colorado', type: 'Cultivation Class C', num: '403R-00042', status: 'Active', exp: '2026-12-15' },
+            { id: '2', state: 'Colorado', type: 'Retail Dispensary', num: '402R-01293', status: 'Active', exp: '2027-02-20' },
+            { id: '3', state: 'California', type: 'Distributor', num: 'C11-0000349-LIC', status: 'Active', exp: '2026-08-11' },
+            { id: '4', state: 'California', type: 'Manufacturing Type 7', num: 'CDPH-1000204', status: 'Active', exp: '2026-09-30' },
+            { id: '5', state: 'Michigan', type: 'Grower Class C', num: 'AU-G-C-000214', status: 'Active', exp: '2027-05-18' },
+            { id: '6', state: 'Illinois', type: 'Craft Grower', num: '2020-CG-01294', status: 'Active', exp: '2026-11-01' },
+            { id: '7', state: 'New Jersey', type: 'Retail Dispensary', num: 'NJ-DISP-8849', status: 'Pending Audit', exp: '2027-04-12' },
+            { id: '8', state: 'New York', type: 'Microbusiness License', num: 'OCM-MIC-2025-0043', status: 'Under Review', exp: '2026-10-15' }
+          ]);
+
+          const [licenseRequestUser, setLicenseRequestUser] = useState('');
+          const [licenseNotification, setLicenseNotification] = useState(null);
+
+          // Initialize POC lists when MSO model changes
+          useEffect(() => {
+            if (msoModel) {
+              const depts = getDepartmentsByModel(msoModel);
+              const initialPocs = {};
+              depts.forEach(d => {
+                initialPocs[d] = [{ name: '', email: '' }];
+              });
+              setPocs(initialPocs);
+              setActiveTab('System Administrator');
+            }
+          }, [msoModel]);
+
+          const getDepartmentsByModel = (model) => {
+            switch (model) {
+              case 'Vertical MSO':
+                return ['System Administrator', 'Cultivation', 'Harvesting', 'Packaging', 'Production', 'Sales', 'Fulfillment', 'Accounting'];
+              case 'Multi-State Brand':
+                return ['System Administrator', 'Production', 'Packaging', 'B2B Wholesale', 'Royalty Tracking', 'Vendor Management', 'Marketing', 'Accounting'];
+              case 'Hybrid Model':
+                return ['System Administrator', 'Cultivation', 'Harvesting', 'Packaging', 'Production', 'Sales', 'Fulfillment', 'B2B Wholesale', 'Royalty Tracking', 'Vendor Management', 'Marketing', 'Accounting'];
+              default:
+                return ['System Administrator'];
+            }
+          };
+
+          const handleLocalAddPoc = (dept) => {
+            setPocs(prev => ({
+              ...prev,
+              [dept]: [...(prev[dept] || []), { name: '', email: '' }]
+            }));
+          };
+
+          const handleLocalPocChange = (dept, index, field, value) => {
+            setPocs(prev => {
+              const newDeptPocs = [...(prev[dept] || [])];
+              if (!newDeptPocs[index]) newDeptPocs[index] = { name: '', email: '' };
+              newDeptPocs[index][field] = value;
+              return { ...prev, [dept]: newDeptPocs };
+            });
+          };
+
+          const handleLocalDeletePoc = (dept, index) => {
+            setPocs(prev => {
+              const newDeptPocs = (prev[dept] || []).filter((_, idx) => idx !== index);
+              return { ...prev, [dept]: newDeptPocs };
+            });
+          };
+
+          const handleConnectPOS = (posId) => {
+            setPosIntegrations(prev => ({
+              ...prev,
+              [posId]: { ...prev[posId], connecting: true }
+            }));
+
+            setTimeout(() => {
+              setPosIntegrations(prev => ({
+                ...prev,
+                [posId]: { ...prev[posId], connected: true, connecting: false }
+              }));
+              setActivePosSetup(null);
+              triggerToast(`Successfully mapped Canopy and ${posId.toUpperCase()} active registers!`);
+            }, 1500);
+          };
+
+          const handleDisconnectPOS = (posId) => {
+            setPosIntegrations(prev => ({
+              ...prev,
+              [posId]: { ...prev[posId], connected: false, key: '', locationId: '' }
+            }));
+            triggerToast(`Disconnected ${posId.toUpperCase()} workspace.`);
+          };
+
+          const handleSendLicenseRequest = (e) => {
+            e.preventDefault();
+            if (!licenseRequestUser) return;
+            const userObj = MOCK_USERS.find(u => u.id === licenseRequestUser);
+            setLicenseNotification(`Secure credentials request successfully sent to ${userObj.name} (${userObj.title}).`);
+            setLicenseRequestUser('');
+            setTimeout(() => setLicenseNotification(null), 5000);
+          };
+
+          const getIntakePreview = (dept) => {
+            const previews = {
+              'System Administrator': [
+                { q: "Global Timezone Base", type: "Select Dropdown" },
+                { q: "SSO / SAML Identity Provider", type: "SAML Config String" },
+                { q: "Upload Master User Roster", type: "Roster CSV File" }
+              ],
+              'Cultivation': [
+                { q: "Facility Layout & Spatial Allocation Plan", type: "Spatial Layout File" },
+                { q: "Approved Chemical Registry & Log Format", type: "Chemical Register CSV" },
+                { q: "Destruction Approval Authority Policies", type: "Security Input & Toggles" },
+                { q: "Withholding Pre-Harvest Intervals (PHI)", type: "Structured Chemical Lockouts Table" }
+              ],
+              'Harvesting': [
+                { q: "Industrial Bench Scale Integration Inventory", type: "Scale Model Register Table" },
+                { q: "Dry & Cure Room Layout Designations", type: "Curing Location Matrix Table" },
+                { q: "Waste-to-Weight Tolerances & Moisture Loss Limits", type: "Variance Limits (%)" },
+                { q: "State-Approved Waste Reason Codes", type: "Compliance Reason Codes Table" }
+              ],
+              'Packaging': [
+                { q: "Thermal Label Printer Models & Network IPs", type: "Local Network Hardware Mapping" },
+                { q: "BOM Component Scrap Rates (Vapes, Boxes, Bags)", type: "Waste Forecasting Percentages" },
+                { q: "State-Mandated Package UID Tag Prefixes", type: "Traceability Prefix Logs" }
+              ],
+              'Production': [
+                { q: "Master Bills of Materials (BOMs)", type: "Multi-level Recipe Template" },
+                { q: "Non-Cannabis Inventory (NCI) Starting Stocks", type: "Ingredient Ledger Template" },
+                { q: "QC Sign-off Thresholds & Pin Gates", type: "Compliance PIN Gates Setup" }
+              ],
+              'Sales': [
+                { q: "Digital POS Provider Integration Suite", type: "Direct API Client Integration" },
+                { q: "Cash Drawer Discrepancy Limits", type: "Tolerance Limit ($/g)" },
+                { q: "Age Verification & Barcode Fail Protocols", type: "POS Compliance Fallback Settings" }
+              ],
+              'Fulfillment': [
+                { q: "Active Delivery Fleet Vehicle & Driver Roster", type: "File Template Upload" },
+                { q: "Manifest Deviation Delay Windows & Alerts", type: "Delay Limit (Min) & Contacts" },
+                { q: "Delivery Zone Local Tax Matrix", type: "ZIP/Zone Tax Rates Table" }
+              ],
+              'Accounting': [
+                { q: "Employee Cost of Goods Sold (COGS) Ledger", type: "Payroll COGS Template" },
+                { q: "External GL Sync Bridge Settings", type: "Integration Selection" },
+                { q: "Tax Category Mapping Sheets", type: "Tax Ledger Template" }
+              ],
+              'B2B Wholesale': [
+                { q: "B2B Marketplace Integration", type: "Sync Toggle Option" },
+                { q: "Wholesale Tier Catalog Matrix", type: "Pricing Ledger File" }
+              ],
+              'Royalty Tracking': [
+                { q: "Licensed Brands IP Registers", type: "Text Area" },
+                { q: "SKU Royalty Payout Schedule Sheets", type: "Commission Schedule File" }
+              ],
+              'Vendor Management': [
+                { q: "Approved Material and Ingredient Suppliers", type: "Supplier Register CSV" },
+                { q: "Receiving Rejection & RTV Credit Memos Rules", type: "Custom Threshold Parameters" }
+              ],
+              'Marketing': [
+                { q: "Integrated Online Brand Storefront", type: "Toggle Option" },
+                { q: "Discount Engine Logics", type: "Campaign Parameters Details" }
+              ]
+            };
+            return previews[dept] || [{ q: "General Configuration Fields", type: "Structured Form Data" }];
+          };
+
+          // -------------------------------------------------------------
+          // REUSABLE SUB-COMPONENTS (Modified to use custom Toasts)
+          // -------------------------------------------------------------
+          const TemplateUploader = ({ label, formats, templateName }) => (
+            <div className="mb-5 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <div>
+                  <label className="block text-sm font-bold text-slate-800">{label}</label>
+                  <span className="text-xs text-slate-500 italic">Supported extensions: {formats}</span>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => triggerToast(`Initiated download request: empty_${templateName}`)}
+                  className="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md transition-colors"
+                >
+                  <Icon name="Download" className="w-3.5 h-3.5" />
+                  <span>Download CSV Template</span>
+                </button>
+              </div>
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-emerald-50/50 hover:border-emerald-300 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-3 pb-3">
+                    <Icon name="UploadCloud" className="w-6 h-6 text-slate-400 mb-1" />
+                    <p className="text-xs text-slate-500">Drag files here or browse to select files</p>
+                  </div>
+                  <input type="file" className="hidden" />
+                </label>
+              </div>
+            </div>
+          );
+
+          const DynamicTable = ({ title, description, columns, data, setData }) => {
+            const handleAddRow = () => {
+              const newRow = { id: Date.now().toString() };
+              columns.forEach(col => {
+                newRow[col.key] = '';
+              });
+              setData([...data, newRow]);
+            };
+
+            const handleUpdateRow = (id, key, value) => {
+              setData(data.map(row => row.id === id ? { ...row, [key]: value } : row));
+            };
+
+            const handleDeleteRow = (id) => {
+              setData(data.filter(row => row.id !== id));
+            };
+
+            return (
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-5">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">{title}</h4>
+                    {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddRow}
+                    className="inline-flex items-center space-x-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm hover:shadow transition-colors"
+                  >
+                    <Icon name="Plus" className="w-3 h-3" />
+                    <span>Add Row</span>
+                  </button>
+                </div>
+
+                {data.length === 0 ? (
+                  <div className="text-center py-4 bg-white rounded border border-slate-200">
+                    <p className="text-xs text-slate-500 italic">No configuration entries. Click 'Add Row' to start.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left bg-white border border-slate-200 rounded overflow-hidden">
+                      <thead>
+                        <tr className="bg-slate-100 border-b border-slate-200">
+                          {columns.map(col => (
+                            <th key={col.key} className="p-2 text-xs font-semibold text-slate-600" style={{ width: col.width || 'auto' }}>
+                              {col.label}
+                            </th>
+                          ))}
+                          <th className="p-2 text-xs font-semibold text-slate-600 w-12 text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.map(row => (
+                          <tr key={row.id} className="border-b border-slate-150 last:border-b-0 hover:bg-slate-50">
+                            {columns.map(col => (
+                              <td key={col.key} className="p-1">
+                                <input
+                                  type={col.type || 'text'}
+                                  value={row[col.key] || ''}
+                                  placeholder={col.placeholder || ''}
+                                  onChange={(e) => handleUpdateRow(row.id, col.key, e.target.value)}
+                                  className="w-full px-2 py-1 text-xs border border-transparent rounded bg-transparent focus:bg-white focus:border-slate-300 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                                />
+                              </td>
+                            ))}
+                            <td className="p-1 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRow(row.id)}
+                                className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition-colors"
+                              >
+                                <Icon name="Trash2" className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          const TextInput = ({ label, placeholder, multiline = false, icon }) => (
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center">
+                {icon && <span className="mr-1.5 text-slate-500">{icon}</span>}
+                {label}
+              </label>
+              {multiline ? (
+                <textarea rows="3" placeholder={placeholder} className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+              ) : (
+                <input type="text" placeholder={placeholder} className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" />
+              )}
+            </div>
+          );
+
+          const SelectInput = ({ label, options, icon }) => (
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center">
+                {icon && <span className="mr-1.5 text-slate-500">{icon}</span>}
+                {label}
+              </label>
+              <select className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                <option value="">Select option...</option>
+                {options.map(opt => <option key={opt}>{opt}</option>)}
+              </select>
+            </div>
+          );
+
+          const ToggleInput = ({ label, hasFollowUp, followUpLabel, icon }) => {
+            const [enabled, setEnabled] = useState(false);
+            return (
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center">
+                  {icon && <span className="mr-1.5 text-slate-500">{icon}</span>}
+                  {label}
+                </label>
+                <div className="flex space-x-4 mb-2">
+                  <label className="flex items-center cursor-pointer">
+                    <input type="radio" checked={enabled} onChange={() => setEnabled(true)} className="text-emerald-600 focus:ring-emerald-500 w-4 h-4" />
+                    <span className="ml-2 text-sm text-slate-700">Yes</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input type="radio" checked={!enabled} onChange={() => setEnabled(false)} className="text-emerald-600 focus:ring-emerald-500 w-4 h-4" />
+                    <span className="ml-2 text-sm text-slate-700">No</span>
+                  </label>
+                </div>
+                {enabled && hasFollowUp && (
+                  <div className="mt-2 pl-4 border-l-2 border-emerald-200 animate-fade-in">
+                    <TextInput label={followUpLabel} placeholder="Specify details..." />
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          // -------------------------------------------------------------
+          // DYNAMIC COMPONENT: DESTRUCTION APPROVAL TABLE (Dropdown of Mock Users)
+          // -------------------------------------------------------------
+          const DestructionApprovalsTable = () => {
+            const handleAddUserRow = () => {
+              setDestructionAuthorities([...destructionAuthorities, { id: Date.now().toString(), userId: '' }]);
+            };
+
+            const handleUpdateUserRow = (rowId, userId) => {
+              setDestructionAuthorities(destructionAuthorities.map(row => row.id === rowId ? { ...row, userId } : row));
+            };
+
+            const handleDeleteUserRow = (rowId) => {
+              setDestructionAuthorities(destructionAuthorities.filter(row => row.id !== rowId));
+            };
+
+            return (
+              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <div className="flex justify-between items-center mb-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">Destruction Approvals & Verification</h4>
+                    <p className="text-xs text-slate-500">Designate users authorized to execute a plant batch destruction order.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddUserRow}
+                    className="inline-flex items-center space-x-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-1 rounded transition-colors"
+                  >
+                    <Icon name="Plus" className="w-3.5 h-3.5" />
+                    <span>Add Approver</span>
+                  </button>
+                </div>
+
+                {destructionAuthorities.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic text-center py-2">No authorized users assigned.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {destructionAuthorities.map((row) => (
+                      <div key={row.id} className="flex items-center space-x-3 bg-slate-50 p-2 rounded border border-slate-100">
+                        <div className="flex-1">
+                          <select
+                            value={row.userId}
+                            onChange={(e) => handleUpdateUserRow(row.id, e.target.value)}
+                            className="w-full text-xs bg-white border border-slate-300 rounded p-1.5 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                          >
+                            <option value="">-- Choose Authorized Staff Member --</option>
+                            {MOCK_USERS.map(user => (
+                              <option key={user.id} value={user.id}>
+                                {user.name} - {user.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteUserRow(row.id)}
+                          className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50"
+                        >
+                          <Icon name="Trash2" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          // -------------------------------------------------------------
+          // DYNAMIC HEADER: POC LISTING AT THE TOP OF THE TABS
+          // -------------------------------------------------------------
+          const DepartmentPocHeaderCard = ({ dept }) => {
+            const deptPocs = pocs[dept] || [];
+            
+            return (
+              <div className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-150 p-5 rounded-xl shadow-sm">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-emerald-100 pb-3 mb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      <Icon name="Users" className="w-4 h-4 text-emerald-600" />
+                      Designated Points of Contact (POC) &middot; {dept}
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Specify active implementation leads who will manage this operational system configuration.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleLocalAddPoc(dept)}
+                    className="self-start sm:self-center inline-flex items-center space-x-1 text-xs font-bold text-emerald-800 bg-white border border-emerald-200 px-3 py-1.5 rounded-lg shadow-sm hover:shadow hover:bg-emerald-50/50 transition-all"
+                  >
+                    <Icon name="Plus" className="w-3.5 h-3.5" />
+                    <span>Add Department POC</span>
+                  </button>
+                </div>
+
+                {deptPocs.length === 0 ? (
+                  <div className="text-center py-4 bg-white/80 rounded-lg border border-dashed border-emerald-200">
+                    <p className="text-xs text-emerald-700 italic">No points of contact configured yet. Click 'Add Department POC' above.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {deptPocs.map((poc, idx) => (
+                      <div key={idx} className="bg-white p-3 rounded-lg border border-slate-150 flex items-center justify-between shadow-sm animate-fade-in">
+                        <div className="flex-1 grid grid-cols-2 gap-2 mr-3">
+                          <input 
+                            type="text" 
+                            placeholder="Full Name" 
+                            value={poc.name || ''}
+                            onChange={(e) => handleLocalPocChange(dept, idx, 'name', e.target.value)}
+                            className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                          />
+                          <input 
+                            type="email" 
+                            placeholder="Email Address" 
+                            value={poc.email || ''}
+                            onChange={(e) => handleLocalPocChange(dept, idx, 'email', e.target.value)}
+                            className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleLocalDeletePoc(dept, idx)}
+                          className="text-slate-400 hover:text-rose-500 p-1.5 rounded hover:bg-rose-50 transition-all"
+                        >
+                          <Icon name="Trash2" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          // -------------------------------------------------------------
+          // PRIMARY VIEWS: ONBOARDING VS STATE LICENSES
+          // -------------------------------------------------------------
+          const renderStep1 = () => (
+            <div className="space-y-6 animate-fade-in">
+              <div className="text-center max-w-2xl mx-auto mb-10">
+                <h2 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">Select Your Operational Model</h2>
+                <p className="text-slate-600 font-medium">
+                  Canopy adapts to your structural typology. Select the model that best describes your multi-state operations to generate a custom onboarding architecture.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {[
+                  {
+                    title: 'Vertical MSO',
+                    icon: <Icon name="Building2" className="w-8 h-8 mb-4 text-emerald-600" />,
+                    desc: 'Licenses covering the entire supply chain, from seed to retail sale, across multiple state jurisdictions.'
+                  },
+                  {
+                    title: 'Multi-State Brand',
+                    icon: <Icon name="Store" className="w-8 h-8 mb-4 text-emerald-600" />,
+                    desc: 'Controls IP and brand rights, partnering with local license holders to manufacture and distribute.'
+                  },
+                  {
+                    title: 'Hybrid Model',
+                    icon: <Icon name="Map" className="w-8 h-8 mb-4 text-emerald-600" />,
+                    desc: 'Maintains some, but not all, licenses across the supply chain, utilizing complex out-of-state partnerships.'
+                  }
+                ].map((model) => (
+                  <div 
+                    key={model.title}
+                    onClick={() => setMsoModel(model.title)}
+                    className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                      msoModel === model.title 
+                        ? 'border-emerald-500 bg-emerald-50 shadow-md transform -translate-y-1' 
+                        : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-sm'
+                    }`}
+                  >
+                    {model.icon}
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">{model.title}</h3>
+                    <p className="text-sm text-slate-600 leading-relaxed">{model.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end mt-8">
+                <button 
+                  type="button"
+                  disabled={!msoModel}
+                  onClick={() => setStep(2)}
+                  className={`flex items-center px-6 py-3 rounded-lg font-bold shadow transition-all ${
+                    msoModel ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  Continue to Modules <Icon name="ArrowRight" className="ml-2 w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          );
+
+          // -------------------------------------------------------------
+          // DEPARTMENT FORM RENDER LOGIC
+          // -------------------------------------------------------------
+          const renderDepartmentForm = (dept) => {
+            switch (dept) {
+              case 'System Administrator':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="border-b border-slate-200 pb-3">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                        <Icon name="ShieldCheck" className="w-5 h-5 mr-2 text-indigo-600" />
+                        Global System Configuration
+                      </h3>
+                      <p className="text-xs text-slate-500">Core parameters setup by your primary systems engineer.</p>
+                    </div>
+                    <SelectInput label="Global Timezone Base" options={['Eastern Time (ET)', 'Central Time (CT)', 'Mountain Time (MT)', 'Pacific Time (PT)']} />
+                    <TextInput label="SSO / SAML Identity Provider Integration URL" placeholder="https://identity-provider.com/saml2" />
+                    <TextInput label="Password Expiration Policy (Days)" placeholder="e.g., 90" />
+                    <TemplateUploader label="Upload Master User Roster" formats=".csv, .xlsx" templateName="master_user_roster.csv" />
+                  </div>
+                );
+
+              case 'Cultivation':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="border-b border-slate-200 pb-3">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                        <Icon name="Leaf" className="w-5 h-5 mr-2 text-emerald-600" />
+                        Cultivation Setup & Controls
+                      </h3>
+                      <p className="text-xs text-slate-500">Define layouts, chemical withholding periods, and destruction safety checks.</p>
+                    </div>
+                    
+                    <TemplateUploader label="Facility Layout & Spatial Allocation Plan" formats=".pdf, .jpg, .png, .csv" templateName="spatial_layouts_master.csv" />
+                    <SelectInput label="Default Unit of Measure (UOM) for tracking plant growth" options={['Grams', 'Pounds', 'Kilograms']} />
+                    
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs">Destruction Approvals & Verification</h4>
+                      <TextInput label="Authorized Destruction Supervisor Title" placeholder="e.g., Cultivation Manager, Director of Ag" />
+                      <ToggleInput label="Is a Dual-Signature / 'Two-Man Rule' required for logging plant destruction in-system?" icon={<Icon name="Lock" className="w-4 h-4" />} />
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs">Automated Quarantine Triggers</h4>
+                      <div className="space-y-2">
+                        <label className="block text-xs font-semibold text-slate-600">Which parameters require automated system locks to move a plant batch to a digital Quarantine zone?</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {['Failed Visual Inspection', 'Pest Detection Flag', 'State Audit Discrepancy', 'Failed Internal Lab Test'].map((p) => (
+                            <label key={p} className="flex items-center space-x-2 bg-white p-2 border border-slate-200 rounded text-xs cursor-pointer">
+                              <input type="checkbox" className="rounded text-emerald-600 focus:ring-emerald-500" />
+                              <span>{p}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* WITHHOLDING PRE-HARVEST INTERVALS (PHI) EDITABLE TABLE */}
+                    <DynamicTable
+                      title="Withholding Pre-Harvest Intervals (PHI)"
+                      description="Enter chemical locks in days to prevent harvest execution inside spraying windows."
+                      columns={[
+                        { key: 'chemical', label: 'Chemical / Spray Agent Name', placeholder: 'e.g., Myclobutanil', width: '60%' },
+                        { key: 'days', label: 'Withholding Window (Days)', placeholder: 'e.g., 14', type: 'number', width: '30%' }
+                      ]}
+                      data={phiData}
+                      setData={setPhiData}
+                    />
+
+                    <TemplateUploader label="Upload Approved Chemical Registry & Spray Log Format" formats=".csv, .pdf" templateName="chemical_registry_and_logs.csv" />
+                  </div>
+                );
+
+              case 'Harvesting':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="border-b border-slate-200 pb-3">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                        <Icon name="Settings" className="w-5 h-5 mr-2 text-emerald-600" />
+                        Harvesting Weight Compliance
+                      </h3>
+                      <p className="text-xs text-slate-500">Configure balance tolerances, curing dry rooms, and approved waste disposals.</p>
+                    </div>
+
+                    {/* BENCH SCALES EDITABLE TABLE */}
+                    <DynamicTable
+                      title="Industrial Bench Scale Integration Inventory"
+                      description="Inventory of scales used to log wet & dry plant weights."
+                      columns={[
+                        { key: 'model', label: 'Scale Model Name', placeholder: 'e.g., Ohaus Defender 3000', width: '50%' },
+                        { key: 'serial', label: 'Unique Identifier / Serial Number', placeholder: 'e.g., SN-203819', width: '40%' }
+                      ]}
+                      data={benchScales}
+                      setData={setBenchScales}
+                    />
+
+                    {/* DRY / CURE ROOMS EDITABLE TABLE */}
+                    <DynamicTable
+                      title="Dry/Cure Room Layout Designations"
+                      description="Define drying and curing centers to map real physical inventory to digital Canopy nodes."
+                      columns={[
+                        { key: 'room', label: 'Room Designation Name', placeholder: 'e.g., Dry Room Alpha', width: '60%' },
+                        { key: 'capacity', label: 'Weight Capacity Limits', placeholder: 'e.g., 1,000 lbs', width: '30%' }
+                      ]}
+                      data={dryCureRooms}
+                      setData={setDryCureRooms}
+                    />
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs">Waste-to-Weight Tolerances</h4>
+                      <div className="flex gap-4">
+                        <div className="w-1/2">
+                          <TextInput 
+                            label="Max Allowable Moisture Loss Variance (%)" 
+                            placeholder="e.g., 75" 
+                            icon={<Icon name="Percent" className="w-4 h-4 text-emerald-600" />} 
+                          />
+                        </div>
+                        <div className="w-1/2">
+                          <TextInput 
+                            label="Max Stem-to-Flower Ratio Allowance (%)" 
+                            placeholder="e.g., 15" 
+                            icon={<Icon name="Percent" className="w-4 h-4 text-slate-400" />} 
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-normal">
+                        If wet-to-dry metrics fall outside these boundary parameters, Canopy automatically flags the harvest run with an anomaly flag.
+                      </p>
+                    </div>
+
+                    {/* HARVEST WASTE REASON CODES EDITABLE TABLE */}
+                    <DynamicTable
+                      title="State-Approved Harvest Waste Reason Codes"
+                      description="Define specific reasons for logging material discard."
+                      columns={[
+                        { key: 'code', label: 'System Action Code', placeholder: 'e.g., MOISTURE_LOSS', width: '40%' },
+                        { key: 'desc', label: 'Logging Description', placeholder: 'e.g., Loss during harvest bucking', width: '50%' }
+                      ]}
+                      data={wasteReasons}
+                      setData={setWasteReasons}
+                    />
+                  </div>
+                );
+
+              case 'Packaging':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="border-b border-slate-200 pb-3">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                        <Icon name="Building2" className="w-5 h-5 mr-2 text-emerald-600" />
+                        Packaging Controls & Labeling
+                      </h3>
+                      <p className="text-xs text-slate-500">Track final package weights, print servers, and component scrap rules.</p>
+                    </div>
+                    <TextInput label="Thermal Label Printer Models & Network IP Assignments" placeholder="e.g., Zebra ZD410 (IP: 192.168.1.55)" multiline />
+                    <TextInput label="State-Mandated UID Package Tag Prefixes" placeholder="e.g., 1A4000300..." />
+                    <TextInput label="Precision Scale Models for Final Weights" placeholder="e.g., Ohaus Ranger 3000" />
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center text-slate-700">
+                        <Icon name="BadgePercent" className="w-4 h-4 mr-1 text-emerald-600" />
+                        BOM Component Scrap Rates
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium">
+                        Set expected default scrap rate percentages to ensure precise inventory forecasting on materials consumed during a package run.
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <TextInput label="Vape Hardware Fail Rate (%)" placeholder="e.g., 2" />
+                        <TextInput label="Bag / Box Label Wastage (%)" placeholder="e.g., 5" />
+                      </div>
+                    </div>
+                  </div>
+                );
+
+              case 'Production':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2 flex items-center">
+                      <Icon name="Settings" className="w-5 h-5 mr-2 text-indigo-600" />
+                      Production & Manufacturing
+                    </h3>
+                    <TemplateUploader label="Master Bills of Materials (BOMs)" formats=".csv, .xlsx" templateName="master_boms.csv" />
+                    <TemplateUploader label="Non-Cannabis Inventory (NCI) Starting Stock (Ingredients, Solvents)" formats=".csv, .xlsx" templateName="starting_nci_ledger.csv" />
+                    
+                    <ToggleInput label="Require System Lock Pending Failed/Missing Lab Results?" />
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center text-slate-700">
+                        <Icon name="Lock" className="w-4 h-4 mr-1 text-indigo-600" />
+                        QC Sign-off & Stage PIN Gates
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Select points where a designated production supervisor must digitally sign-off using an in-app PIN to advance state stages:
+                      </p>
+                      <div className="space-y-2">
+                        {[
+                          'Crude Extraction complete (Yield Validation Check)',
+                          'Post-Distillation potency validation Check',
+                          'Edible Batch infusion (Dose/Homogeneity check)',
+                          'Final compliance label verification'
+                        ].map((stage, idx) => (
+                          <label key={idx} className="flex items-center space-x-2 bg-white p-2.5 border border-slate-200 rounded text-xs font-medium text-slate-700 cursor-pointer">
+                            <input type="checkbox" defaultChecked={idx === 2} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                            <span>{stage}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs">Sanitization & Line-Clearance Checklists</h4>
+                      <TextInput 
+                        label="Required Checklist Fields Between Batches (e.g., Solvent Flush, Mold/Allergen Wipe, Temp Recalibration)" 
+                        placeholder="Enter mandatory fields required to clear system for the next batch run..." 
+                        multiline 
+                      />
+                    </div>
+                  </div>
+                );
+
+              case 'Sales':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="border-b border-slate-200 pb-3">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center">
+                        <Icon name="Store" className="w-5 h-5 mr-2 text-emerald-600" />
+                        Retail Point-of-Sale Integration
+                      </h3>
+                      <p className="text-xs text-slate-500">Configure automated digital POS connections and cash drawer tolerances.</p>
+                    </div>
+
+                    {/* POS SYSTEM INTEGRATION INTERACTIVE LOGO GRID */}
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center">
+                        <Icon name="RefreshCw" className="w-4 h-4 mr-1.5 text-emerald-600 animate-spin-slow" />
+                        Select & Configure POS Direct Integration
+                      </h4>
+                      <p className="text-xs text-slate-500 mb-4">
+                        Select your digital retail platform to configure credentials and unlock direct, real-time sync with Canopy's global ledger.
+                      </p>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {[
+                          { id: 'dutchie', name: 'Dutchie POS', color: 'border-emerald-200 hover:border-emerald-400' },
+                          { id: 'treez', name: 'Treez POS', color: 'border-indigo-200 hover:border-indigo-400' },
+                          { id: 'cova', name: 'Cova Software', color: 'border-green-200 hover:border-green-400' },
+                          { id: 'flowhub', name: 'Flowhub', color: 'border-rose-200 hover:border-rose-400' },
+                          { id: 'blaze', name: 'Blaze Retail', color: 'border-amber-200 hover:border-amber-400' },
+                          { id: 'jane', name: 'Jane POS', color: 'border-teal-200 hover:border-teal-400' }
+                        ].map((pos) => {
+                          const state = posIntegrations[pos.id];
+                          return (
+                            <div 
+                              key={pos.id} 
+                              className={`p-3 rounded-lg border bg-white flex flex-col justify-between items-center text-center transition-all ${pos.color} ${
+                                state.connected ? 'ring-2 ring-emerald-500' : ''
+                              }`}
+                            >
+                              <div className="mb-2">
+                                <div className="font-bold text-slate-800 text-sm">{pos.name}</div>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                  state.connected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
+                                }`}>
+                                  {state.connected ? 'Connected' : 'Not Connected'}
+                                </span>
+                              </div>
+                              
+                              {state.connected ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDisconnectPOS(pos.id)}
+                                  className="w-full text-center text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 py-1 rounded transition-colors"
+                                >
+                                  Disconnect
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setActivePosSetup(pos.id)}
+                                  className="w-full text-center text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 py-1 border rounded transition-colors"
+                                >
+                                  Configure
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Expandable Setup Credentials Form */}
+                      {activePosSetup && (
+                        <div className="mt-5 bg-white p-4 rounded-lg border border-slate-200 animate-fade-in">
+                          <div className="flex justify-between items-center border-b pb-2 mb-3">
+                            <h5 className="font-semibold text-xs text-slate-800 uppercase">
+                              Integrate {activePosSetup.toUpperCase()} Credentials
+                            </h5>
+                            <button 
+                              type="button"
+                              onClick={() => setActivePosSetup(null)} 
+                              className="text-slate-400 hover:text-slate-600"
+                            >
+                              <Icon name="X" className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <TextInput 
+                              label="Integration API / Client Key" 
+                              placeholder="e.g., pk_live_8391..." 
+                            />
+                            <TextInput 
+                              label="Location / Station Identifier" 
+                              placeholder="e.g., LOC-DEN-01" 
+                            />
+                          </div>
+                          <div className="mt-3 flex justify-end">
+                            <button
+                              type="button"
+                              disabled={posIntegrations[activePosSetup].connecting}
+                              onClick={() => handleConnectPOS(activePosSetup)}
+                              className="flex items-center space-x-1.5 px-4 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                            >
+                              {posIntegrations[activePosSetup].connecting ? (
+                                <>
+                                  <Icon name="RefreshCw" className="w-3.5 h-3.5 animate-spin" />
+                                  <span>Verifying API Handshake...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Icon name="Check" className="w-3.5 h-3.5" />
+                                  <span>Verify & Connect</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center text-slate-700">
+                        <Icon name="ShieldAlert" className="w-4 h-4 mr-1 text-rose-500" />
+                        Drawer Discrepancy & Threshold Triggers
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Set automated thresholds that lock transactions and flag management when daily audits deviate.
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <TextInput label="Cash Discrepancy Alert Limit ($)" placeholder="10.00" icon={<Icon name="DollarSign" className="w-4 h-4 text-emerald-600" />} />
+                        <TextInput label="Inventory Weight Variance Limit (g)" placeholder="5.00" icon={<Icon name="Percent" className="w-4 h-4" />} />
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs">Age Verification Fallbacks</h4>
+                      <TextInput label="Approved ID Scanner Hardware" placeholder="e.g., E-Seek M260, Socket Mobile" />
+                      <SelectInput 
+                        label="Compliance Action Protocol: If Scanner Fails to Read Barcode" 
+                        options={[
+                          'Block Sale (Hard block requiring secondary manager override)',
+                          'Manual Barcode Override (Require supervisor PIN)',
+                          'Manual Input + Compulsory Capture of ID Photo via POS camera'
+                        ]} 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <TextInput label="Default Register Starting Balance ($)" placeholder="150.00" />
+                      <SelectInput label="Cash Rounding Rules" options={['Round to nearest $0.05', 'Round up to nearest dollar', 'No rounding']} />
+                    </div>
+                  </div>
+                );
+
+              case 'Fulfillment':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2 flex items-center">
+                      <Icon name="Truck" className="w-5 h-5 mr-2 text-emerald-600" />
+                      Logistics & Delivery Fleet
+                    </h3>
+                    <TemplateUploader label="Active Delivery Vehicle Fleet Roster & Driver Details" formats=".csv, .xlsx" templateName="fleet_manifest_details.csv" />
+                    <ToggleInput label="Utilize Dedicated Third-Party Routing Software?" hasFollowUp followUpLabel="Specify Software Integration (e.g., Onfleet)" />
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs flex items-center text-slate-700">
+                        <Icon name="Clock" className="w-4 h-4 mr-1 text-emerald-600" />
+                        Transit Manifest Deviations
+                      </h4>
+                      <div className="flex gap-4">
+                        <div className="w-1/3">
+                          <TextInput label="Allowable Delay (Min)" placeholder="30" />
+                        </div>
+                        <div className="w-2/3">
+                          <TextInput label="Who receives SMS warnings on route halts?" placeholder="e.g., Delivery Dispatcher, Security Lead" />
+                        </div>
+                      </div>
+                      <TextInput label="Fallback Procedures: State-Mandated protocol for rerouting" placeholder="Describe detour logging requirements..." multiline />
+                    </div>
+
+                    {/* DELIVERY ZONE TAX RATES EDITABLE TABLE */}
+                    <DynamicTable
+                      title="Delivery Zone Tax Rates Mapping"
+                      description="Identify unique tax profiles linked directly to county delivery zones."
+                      columns={[
+                        { key: 'zone', label: 'County Zone Name / ZIP range', placeholder: 'e.g., Denver County (80201)', width: '60%' },
+                        { key: 'rate', label: 'Combined Tax Rate %', placeholder: 'e.g., 15.25', type: 'number', width: '30%' }
+                      ]}
+                      data={deliveryTaxes}
+                      setData={setDeliveryTaxes}
+                    />
+                  </div>
+                );
+
+              case 'Accounting':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2 flex items-center">
+                      <Icon name="DollarSign" className="w-5 h-5 mr-2 text-indigo-600" />
+                      Accounting & Financial Mapping
+                    </h3>
+                    <TemplateUploader label="Employee Hourly Rates" formats=".csv, .xlsx" templateName="payroll_and_labor_rates.csv" />
+                    
+                    <SelectInput label="External General Ledger (GL) Platform Sync" options={['QuickBooks Online', 'Sage Intacct', 'Xero', 'SAP S/4HANA']} />
+                    
+                    <TemplateUploader label="Tax Category Breakdown Sheets" formats=".csv, .xlsx" templateName="tax_mappings.csv" />
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs">Purchase Order (PO) Approval Hierarchy</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs font-semibold bg-white p-2 border border-slate-200 rounded animate-fade-in">
+                          <span>Under $5,000 Threshold</span>
+                          <span className="text-slate-600 font-bold">Inventory Manager approval allowed</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-semibold bg-white p-2 border border-slate-200 rounded animate-fade-in">
+                          <span>Above $5,000 Threshold</span>
+                          <span className="text-indigo-600 font-extrabold">CFO & Executive sign-off required in-app</span>
+                        </div>
+                        <ToggleInput label="Custom Approval Limits Enabled?" hasFollowUp followUpLabel="Specify custom dollar threshold limits" />
+                      </div>
+                    </div>
+                  </div>
+                );
+
+              case 'B2B Wholesale':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2 flex items-center">
+                      <Icon name="Building2" className="w-5 h-5 mr-2 text-emerald-600" />
+                      B2B Sales & Distribution
+                    </h3>
+                    <ToggleInput label="Sync Inventory Directly with a B2B Marketplace?" hasFollowUp followUpLabel="Specify Platform Name (e.g., LeafLink)" />
+                    <TemplateUploader label="Wholesale Pricing Tiers & Customer Specific Catalogs" formats=".csv, .xlsx" templateName="wholesale_pricing_catalogs.csv" />
+                    <TemplateUploader label="Sales Rep Roster & Territory Matrix" formats=".csv, .xlsx" templateName="sales_territory_roster.csv" />
+                  </div>
+                );
+
+              case 'Royalty Tracking':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2 flex items-center">
+                      <Icon name="Percent" className="w-5 h-5 mr-2 text-indigo-600" />
+                      IP Licensing & Royalties
+                    </h3>
+                    <TextInput label="Active Licensed Multi-State Brands" placeholder="e.g., Wana, Kiva, Wyld" multiline />
+                    <TemplateUploader label="Royalty Percentage Schedules per Licensed SKU" formats=".csv, .xlsx, .pdf" templateName="royalty_fee_schedules.csv" />
+                  </div>
+                );
+
+              case 'Vendor Management':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2 flex items-center">
+                      <Icon name="Users" className="w-5 h-5 mr-2 text-indigo-600" />
+                      Supplier Management
+                    </h3>
+                    <TemplateUploader label="Roster of Approved Material & Packaging Suppliers" formats=".csv, .xlsx" templateName="approved_vendors_list.csv" />
+                    <TextInput label="Internal Purchase Order Approval Workflow Rules" placeholder="Describe the PO validation chain..." multiline />
+
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-xs">Receiving Quality Rejection Thresholds</h4>
+                      <p className="text-xs text-slate-500 font-medium">
+                        Define the criteria that automatically trigger an immediate RTV (Return to Vendor) dispute workflow and draft a credit memo:
+                      </p>
+                      <div className="space-y-2">
+                        {[
+                          'Concentrate shipping temperature exceeds 68°F (20°C)',
+                          'Bulk packaging displays tears, crushed seals, or damp cardboard',
+                          'Missing or illegible Certificate of Analysis (COA) / Lab results',
+                          'Package weight variance exceeds ±1.5% of manifest weight'
+                        ].map((rule, idx) => (
+                          <label key={idx} className="flex items-center space-x-2 bg-white p-2.5 border border-slate-200 rounded text-xs font-semibold text-slate-700 cursor-pointer">
+                            <input type="checkbox" defaultChecked={idx < 3} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                            <span>{rule}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+
+              case 'Marketing':
+                return (
+                  <div className="space-y-6 animate-fade-in">
+                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2 flex items-center">
+                      <Icon name="Store" className="w-5 h-5 mr-2 text-indigo-600" />
+                      Marketing & Storefront Setup
+                    </h3>
+                    <ToggleInput label="Enable Integrated Online Storefront Menu?" hasFollowUp followUpLabel="Dispensing Storefront Display Name" />
+                    <TemplateUploader label="Upload High-Resolution Branding Assets & Logos" formats=".png, .svg" templateName="branding_menu_assets.zip" />
+                    <TextInput label="Active Discount Engine SOPs & Loyalty Program Schemes" placeholder="Describe points per dollar systems..." multiline />
+                    <TemplateUploader label="Standardized Terpene Profiles & SEO Product Copy" formats=".csv, .xlsx" templateName="menu_seo_metadata.csv" />
+                  </div>
+                );
+
+              default:
+                return <p className="text-sm text-slate-500">Form configuration is loading for this node.</p>;
+            }
+          };
+
+          const renderDataMappingTab = () => (
+            <div className="space-y-6 animate-fade-in">
+              <div className="border-b border-slate-200 pb-4 mb-6">
+                <h3 className="text-xl font-bold text-slate-800 flex items-center">
+                  <Icon name="Database" className="w-6 h-6 mr-2 text-indigo-600" /> 
+                  Legacy Data Migration & Sanitation
+                </h3>
+                <p className="text-sm text-slate-500 mt-2 font-medium">
+                  Prior to ERP synchronization, audit and structure existing data to prevent historical pollution. Upload structured templates below for automated error-checking.
+                </p>
+              </div>
+
+              <div className="grid gap-6">
+                {/* Module 1: Cannabis Inventory */}
+                <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-xs">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-bold text-slate-800">1. Cannabis Inventory Validation</h4>
+                      <p className="text-xs text-slate-500 font-medium">Standardize nomenclature and taxonomy for active plants and packages.</p>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => triggerToast("Downloading: empty_cannabis_inventory_master.csv")}
+                      className="text-xs flex items-center bg-white border border-slate-300 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors font-bold text-slate-700"
+                    >
+                      <Icon name="FileSpreadsheet" className="w-3.5 h-3.5 mr-1 text-slate-500" /> Download Template
+                    </button>
+                  </div>
+                  <div className="bg-white border-2 border-dashed border-slate-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50 transition-colors">
+                    <Icon name="UploadCloud" className="w-8 h-8 text-slate-400 mb-2" />
+                    <span className="text-sm font-semibold text-slate-600">Drop `cannabis_inventory_master.csv` here</span>
+                  </div>
+                  
+                  {/* Mock Validation Output */}
+                  <div className="mt-4 p-3 bg-rose-50 border border-rose-200 rounded-md">
+                    <div className="flex items-start">
+                      <Icon name="AlertTriangle" className="w-4 h-4 text-rose-500 mt-0.5 mr-2 flex-shrink-0" />
+                      <div>
+                        <h5 className="text-sm font-bold text-rose-700">Validation Errors Detected</h5>
+                        <ul className="text-xs text-rose-600 mt-1 list-disc pl-4 space-y-1">
+                          <li>Row 42: Missing Metrc UID format.</li>
+                          <li>Row 105: Invalid Plant Phase assignment (expected 'Vegetative' or 'Flowering').</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Module 2: NCI */}
+                <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-xs">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-bold text-slate-800">2. Non-Cannabis Inventory (NCI)</h4>
+                      <p className="text-xs text-slate-500 font-medium">Separate packaging materials, solvents, and culinary ingredients.</p>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => triggerToast("Downloading: empty_nci_master.csv")}
+                      className="text-xs flex items-center bg-white border border-slate-300 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors font-bold text-slate-700"
+                    >
+                      <Icon name="FileSpreadsheet" className="w-3.5 h-3.5 mr-1 text-slate-500" /> Download Template
+                    </button>
+                  </div>
+                  <div className="bg-white border-2 border-dashed border-slate-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50 transition-colors">
+                    <Icon name="UploadCloud" className="w-8 h-8 text-slate-400 mb-2" />
+                    <span className="text-sm font-semibold text-slate-600">Drop `nci_master.csv` here</span>
+                  </div>
+                </div>
+
+                {/* Module 3: BOMs */}
+                <div className="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-xs">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-bold text-slate-800">3. Master Bills of Materials (BOMs)</h4>
+                      <p className="text-xs text-slate-500 font-medium">Map inputs (Cannabis + NCI) to manufactured outputs.</p>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => triggerToast("Downloading: empty_standard_boms.csv")}
+                      className="text-xs flex items-center bg-white border border-slate-300 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors font-bold text-slate-700"
+                    >
+                      <Icon name="FileSpreadsheet" className="w-3.5 h-3.5 mr-1 text-slate-500" /> Download Template
+                    </button>
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded-lg p-4 flex items-center justify-between shadow-xs">
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FileText" className="w-6 h-6 text-emerald-500" />
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h5 className="font-bold text-slate-800 text-sm">standard_boms.csv</h5>
+                          <span className="text-[10px] uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">Validated</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">45 manufactured product recipes structured correctly.</p>
+                      </div>
+                    </div>
+                    <Icon name="CheckCircle2" className="w-5 h-5 text-emerald-500" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+
+          const renderStep2 = () => {
+            const tabs = [...getDepartmentsByModel(msoModel), 'Data Mapping'];
+
+            return (
+              <div className="flex flex-col md:flex-row h-screen max-h-[850px] bg-white border border-slate-200 rounded-xl overflow-hidden shadow-md animate-fade-in">
+                
+                {/* Sidebar Tabs */}
+                <div className="w-full md:w-64 bg-slate-50 border-r border-slate-200 overflow-y-auto">
+                  <div className="p-4 border-b border-slate-200">
+                    <h2 className="font-bold text-slate-800">Onboarding Modules</h2>
+                    <p className="text-xs text-slate-500 mt-1">{msoModel} Architecture</p>
+                  </div>
+                  <nav className="p-2 space-y-1">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setActiveTab(tab)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-md transition-colors ${
+                          activeTab === tab 
+                            ? 'bg-emerald-100 text-emerald-800 font-bold shadow-xs' 
+                            : 'text-slate-600 hover:bg-slate-200 hover:text-slate-950'
+                        }`}
+                      >
+                        <span className="truncate">{tab}</span>
+                        {tab === 'Data Mapping' ? <Icon name="Database" className="w-4 h-4 opacity-50" /> : <Icon name="ChevronRight" className={`w-4 h-4 ${activeTab === tab ? 'opacity-100' : 'opacity-0'}`} />}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="flex-1 overflow-y-auto bg-white p-6 sm:p-8">
+                  <div className="max-w-3xl mx-auto">
+                    {/* Show POC configuration block at the top if NOT on the final Data Mapping page */}
+                    {activeTab !== 'Data Mapping' && (
+                      <DepartmentPocHeaderCard dept={activeTab} />
+                    )}
+
+                    {/* Custom Form Fields */}
+                    {activeTab === 'Data Mapping' ? (
+                      renderDataMappingTab()
+                    ) : (
+                      <div className="space-y-6">
+                        {renderDepartmentForm(activeTab)}
+                        
+                        {/* Dynamically Inject Specialty Fields for Cultivation */}
+                        {activeTab === 'Cultivation' && (
+                          <div className="pt-2 border-t border-slate-100 space-y-4">
+                            <DestructionApprovalsTable />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          // -------------------------------------------------------------
+          // STATE LICENSES COMPONENT RENDER
+          // -------------------------------------------------------------
+          const renderStateLicenses = () => (
+            <div className="space-y-6 animate-fade-in">
+              <div className="max-w-3xl">
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                  <Icon name="Shield" className="w-6 h-6 text-emerald-600" />
+                  State Traceability Licenses & Regulatory Credentials
+                </h2>
+                <p className="text-sm text-slate-500 mt-1 font-medium">
+                  Verify, monitor, and link multi-state Metrc & BioTrack active operator credentials. Discrepancies here can halt compliance sync events immediately.
+                </p>
+              </div>
+
+              {licenseNotification && (
+                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded shadow-sm text-sm text-emerald-800 font-semibold flex items-center justify-between animate-fade-in">
+                  <div className="flex items-center space-x-2">
+                    <Icon name="CheckCircle2" className="w-5 h-5 text-emerald-600" />
+                    <span>{licenseNotification}</span>
+                  </div>
+                  <button onClick={() => setLicenseNotification(null)} className="text-emerald-600 hover:text-emerald-800">
+                    <Icon name="X" className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Grid of 8 Mock State Licenses */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {licenses.map((lic) => (
+                  <div key={lic.id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow hover:border-slate-300 transition-all">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                        {lic.state}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        lic.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {lic.status}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-slate-800 text-sm">{lic.type}</h3>
+                    <p className="text-xs text-slate-500 font-mono mt-2 flex items-center justify-between">
+                      <span>Num:</span> <span className="font-semibold text-slate-700">{lic.num}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+                      <span>Expiration:</span> <span className="font-semibold">{lic.exp}</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* License Authority Request Block */}
+              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 max-w-2xl shadow-sm">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Icon name="UserCheck" className="w-5 h-5 text-indigo-600" />
+                  Request License Updates & Credentials
+                </h3>
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed font-medium">
+                  Missing key state license keys? Initiate an in-app verification request and dispatch direct link-sharing prompts to authorized team compliance officers.
+                </p>
+
+                <form onSubmit={handleSendLicenseRequest} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="flex-1">
+                    <select
+                      value={licenseRequestUser}
+                      onChange={(e) => setLicenseRequestUser(e.target.value)}
+                      required
+                      className="w-full text-xs bg-white border border-slate-300 rounded-lg p-2.5 focus:ring-1 focus:ring-emerald-500 focus:outline-none font-semibold text-slate-700"
+                    >
+                      <option value="">-- Select Team Authority to Prompt --</option>
+                      {MOCK_USERS.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} ({user.title})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center space-x-1.5 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors shadow-sm"
+                  >
+                    <Icon name="Send" className="w-3.5 h-3.5" />
+                    <span>Send Request</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-16">
+              
+              {/* Custom Elegant Toast Notifications */}
+              {toast && (
+                <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-2xl flex items-center space-x-2 border border-slate-800 animate-fade-in">
+                  <Icon name="CheckSquare" className="w-4 h-4 text-emerald-400" />
+                  <span>{toast}</span>
+                </div>
+              )}
+
+              {/* Top Navigation & Core Header */}
+              <nav className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-10 shadow-xs">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <Icon name="Leaf" className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xl font-black tracking-tight text-slate-800">CANOPY</span>
+                  <span className="text-xs font-bold bg-slate-100 text-slate-500 px-2.5 py-0.5 rounded-full ml-2">MSO Setup Suite</span>
+                </div>
+
+                {/* Dynamic step-by-step progress helper */}
+                {activeMainTab === 'Onboarding' && msoModel && (
+                  <div className="hidden md:flex items-center space-x-2 text-xs font-bold bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 animate-fade-in">
+                    <span className={step === 1 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'}>1. Operational Model</span>
+                    <span className="text-slate-300">/</span>
+                    <span className={step === 2 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'}>2. Module Configuration</span>
+                  </div>
+                )}
+                
+                {/* Core Mode Switch: Onboarding Modules vs State Licenses */}
+                <div className="flex items-center space-x-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMainTab('Onboarding')}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                      activeMainTab === 'Onboarding' 
+                        ? 'bg-white text-slate-900 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Onboarding
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMainTab('State Licenses')}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                      activeMainTab === 'State Licenses' 
+                        ? 'bg-white text-slate-900 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    State Licenses
+                  </button>
+                </div>
+              </nav>
+
+              {/* Main Framework Rendering Router */}
+              <main className="max-w-7xl mx-auto p-4 sm:p-6">
+                {activeMainTab === 'State Licenses' ? (
+                  renderStateLicenses()
+                ) : (
+                  <div>
+                    {step === 1 && renderStep1()}
+                    {step === 2 && renderStep2()}
+                  </div>
+                )}
+              </main>
+
+              {/* Global Preview Modal */}
+              {previewModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+                  <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                      <h3 className="font-semibold text-slate-800 text-sm">
+                        Preview: {previewModal.dept} Intake Form
+                      </h3>
+                      <button 
+                        type="button"
+                        onClick={() => setPreviewModal({ isOpen: false, dept: '' })}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <Icon name="X" className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="p-5 max-h-[500px] overflow-y-auto">
+                      <p className="text-xs text-slate-500 mb-4 font-semibold leading-relaxed">
+                        The designated POC for this department will be required to provide the following configuration data:
+                      </p>
+                      <ul className="space-y-3">
+                        {getIntakePreview(previewModal.dept).map((item, i) => (
+                          <li key={i} className="flex items-start bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <Icon name="CheckCircle2" className="w-4 h-4 text-emerald-500 mt-0.5 mr-2 flex-shrink-0" />
+                            <div>
+                              <span className="text-sm font-bold text-slate-700 block">{item.q}</span>
+                              <span className="text-xs text-slate-400 mt-0.5 block">Expected Input: {item.type}</span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="px-5 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                      <button 
+                        type="button"
+                        onClick={() => setPreviewModal({ isOpen: false, dept: '' })}
+                        className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50"
+                      >
+                        Close Preview
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          );
+        };
+
+        // Render application using React 18 createRoot UMD API
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<CanopyOnboarding />);
+    </script>
+</body>
+</html>
