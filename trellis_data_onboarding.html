@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curaleaf Onboarding Dashboard — Prototype</title>
+<meta name="description" content="Interactive prototype of the Curaleaf Enterprise Onboarding Dashboard. For review and feedback.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ============================================================================
+   Design tokens — SignalMVP design system (colors_and_type.css), inlined.
+   ========================================================================== */
+:root{
+  --blue-50:#EEF3FF;--blue-100:#DBE4FF;--blue-200:#BBCBFF;--blue-300:#93A9FF;--blue-400:#6981F8;
+  --blue-500:#3B5BF0;--blue-600:#1B43E5;--blue-700:#1536C4;--blue-800:#152C99;--blue-900:#16277A;
+  --white:#FFFFFF;--gray-25:#FAFBFC;--gray-50:#F4F6F9;--gray-100:#ECEFF3;--gray-150:#E5E9EF;
+  --gray-200:#DDE2E9;--gray-300:#CAD0DA;--gray-400:#99A1AE;--gray-500:#6B7382;--gray-600:#4A515E;
+  --gray-700:#343A45;--gray-800:#20252E;--gray-900:#0E1116;--ink:#0A0C10;
+  --success:#14A05A;--success-bg:#E5F6ED;--danger:#E5484D;--danger-bg:#FCEBEB;
+  --warning:#D88A00;--warning-bg:#FBF1DE;--info:var(--blue-600);--info-bg:var(--blue-50);
+  --bg-canvas:var(--gray-25);--bg-surface:var(--white);--bg-inset:var(--gray-50);--bg-hover:var(--gray-100);
+  --border:var(--gray-200);--border-strong:var(--gray-300);
+  --fg1:var(--gray-900);--fg2:var(--gray-600);--fg3:var(--gray-500);--fg4:var(--gray-400);--fg-onaccent:#FFFFFF;
+  --accent:var(--blue-600);--accent-hover:var(--blue-700);--accent-soft:var(--blue-50);--focus-ring:rgba(27,67,229,.32);
+  --font-sans:"Hanken Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --font-display:var(--font-sans);
+  --text-h1:700 32px/1.12 var(--font-display);--text-h2:700 24px/1.20 var(--font-display);
+  --text-h3:600 19px/1.28 var(--font-display);--text-h4:600 16px/1.35 var(--font-sans);
+  --text-body-lg:400 16px/1.55 var(--font-sans);--text-body:400 14px/1.55 var(--font-sans);
+  --text-body-sm:400 13px/1.45 var(--font-sans);--text-caption:500 12px/1.40 var(--font-sans);
+  --text-overline:600 11px/1.30 var(--font-sans);--text-metric:700 30px/1.05 var(--font-sans);
+  --text-mono:500 13px/1.50 var(--font-mono);
+  --tracking-tight:-.02em;--tracking-snug:-.01em;--tracking-wide:.06em;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;
+  --radius-sm:6px;--radius-md:8px;--radius-lg:12px;--radius-xl:16px;--radius-2xl:22px;--radius-pill:999px;
+  --shadow-xs:0 1px 2px rgba(16,24,40,.05);
+  --shadow-sm:0 1px 3px rgba(16,24,40,.07),0 1px 2px rgba(16,24,40,.04);
+  --shadow-md:0 4px 14px rgba(16,24,40,.08);--shadow-lg:0 12px 32px rgba(16,24,40,.10);
+  --shadow-xl:0 24px 56px rgba(16,24,40,.14);--ring-focus:0 0 0 3px var(--focus-ring);
+}
+.sm-overline{font:var(--text-overline);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--fg3)}
+
+/* ============================================================================
+   App frame (adapted from app.css)
+   ========================================================================== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font-sans);background:var(--gray-100);color:var(--fg1);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button{font-family:inherit}
+::selection{background:var(--blue-100)}
+.app{display:flex;height:100vh;overflow:hidden;background:var(--gray-25)}
+
+.rail{width:62px;flex:none;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px}
+.rail .mark{width:34px;height:34px;border-radius:9px;background:var(--blue-600);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.rail-btn{width:38px;height:38px;border:0;background:transparent;border-radius:10px;color:var(--fg4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s}
+.rail-btn:hover{background:var(--gray-100);color:var(--fg2)}
+.rail-btn.active{background:var(--blue-50);color:var(--accent)}
+.rail-spacer{flex:1}
+
+.nav{width:256px;flex:none;background:var(--gray-50);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:14px 12px;overflow-y:auto}
+.profile{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;cursor:pointer;transition:background .14s}
+.profile:hover{background:var(--gray-100)}
+.profile .who{min-width:0;flex:1}
+.profile .who b{display:block;font-size:13.5px;font-weight:600;color:var(--fg1);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile .who span{display:block;font-size:11.5px;color:var(--fg4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-sep{height:1px;background:var(--border);margin:12px 4px}
+.nav-group{display:flex;flex-direction:column;gap:2px}
+.nav-label{font:var(--text-overline);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--fg4);padding:6px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:0;background:transparent;width:100%;text-align:left;cursor:pointer;color:var(--fg2);font-size:13.5px;font-weight:500;transition:background .14s,color .14s}
+.nav-item .ni-ico{color:var(--fg4);flex:none;transition:color .14s}
+.nav-item:hover{background:var(--gray-100);color:var(--fg1)}
+.nav-item:hover .ni-ico{color:var(--fg3)}
+.nav-item.active{background:var(--ink);color:#fff}
+.nav-item.active .ni-ico{color:#fff}
+.nav-item .ni-count{margin-left:auto;font:var(--text-mono);font-size:11px;color:var(--fg4)}
+.nav-item.active .ni-count{color:rgba(255,255,255,.6)}
+.nav-item .ni-chip{margin-left:auto}
+.nav-foot{margin-top:auto;padding-top:12px}
+.upsell{background:#fff;border:1px solid var(--border);border-radius:12px;padding:13px;box-shadow:var(--shadow-xs)}
+.upsell b{font-size:13px;color:var(--fg1);display:flex;align-items:center;gap:7px}
+.upsell p{margin:6px 0 0;font-size:12px;color:var(--fg3);line-height:1.45}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--white)}
+.topbar .ttl{min-width:0}
+.topbar h1{margin:0;font:var(--text-h2);color:var(--fg1);letter-spacing:0;white-space:nowrap}
+.topbar .crumb{font-size:12.5px;color:var(--fg4);margin-top:2px;display:flex;align-items:center;gap:6px}
+.topbar .grow{flex:1}
+
+.scroll{flex:1;overflow-y:auto;padding:22px 24px 80px}
+.content{max-width:1120px;margin:0 auto}
+
+/* ---------- "Viewing as" persona switcher ---------- */
+.persona{display:flex;align-items:center;gap:9px;background:var(--gray-50);border:1px solid var(--border-strong);border-radius:10px;padding:5px 8px 5px 6px;cursor:pointer;position:relative;transition:background .14s}
+.persona:hover{background:var(--gray-100)}
+.persona .eyebrow{font:var(--text-overline);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--fg4);line-height:1}
+.persona .pn{font-size:13px;font-weight:600;color:var(--fg1);line-height:1.25;white-space:nowrap}
+.persona .pr{font-size:11px;color:var(--fg3);line-height:1.1;white-space:nowrap}
+.persona .pmeta{display:flex;flex-direction:column;gap:2px;text-align:left}
+.pmenu{position:absolute;top:calc(100% + 8px);right:0;width:330px;background:#fff;border:1px solid var(--border);border-radius:13px;box-shadow:var(--shadow-lg);padding:6px;z-index:30}
+.pmenu .pm-h{font:var(--text-overline);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--fg4);padding:8px 10px 4px}
+.pmenu button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:9px;cursor:pointer}
+.pmenu button:hover{background:var(--gray-50)}
+.pmenu button.on{background:var(--blue-50)}
+.pmenu .pm-meta{min-width:0;flex:1}
+.pmenu .pm-meta b{display:block;font-size:13px;color:var(--fg1);font-weight:600}
+.pmenu .pm-meta span{display:block;font-size:11.5px;color:var(--fg3)}
+.pmenu .pm-meta span.scope{color:var(--accent);font-weight:600;margin-top:1px}
+.pmenu .ck{margin-left:auto;color:var(--accent);flex:none}
+
+/* ---------- Avatars ---------- */
+.avatar{border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;background:linear-gradient(135deg,var(--blue-400),var(--blue-600))}
+.avatar.g1{background:linear-gradient(135deg,#6981F8,#1B43E5)}
+.avatar.g2{background:linear-gradient(135deg,#14A05A,#0c7a43)}
+.avatar.g3{background:linear-gradient(135deg,#D88A00,#b06f00)}
+.avatar.g4{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.avatar.g5{background:linear-gradient(135deg,#E5484D,#b81f24)}
+.avatar.g6{background:linear-gradient(135deg,#0ea5b5,#0c7d89)}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-weight:600;font-size:13.5px;line-height:1;border-radius:9px;border:1px solid transparent;padding:9px 15px;cursor:pointer;white-space:nowrap;transition:background .14s,box-shadow .14s,border-color .14s,transform .04s}
+.btn:active{transform:translateY(.5px)}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:#22262e}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent-hover)}
+.btn-secondary{background:#fff;color:var(--fg1);border-color:var(--border-strong);box-shadow:var(--shadow-xs)}
+.btn-secondary:hover{background:var(--gray-50)}
+.btn-ghost{background:transparent;color:var(--fg2)}
+.btn-ghost:hover{background:var(--gray-100);color:var(--fg1)}
+.btn-sm{padding:6px 11px;font-size:12.5px}
+.btn:disabled{background:var(--gray-100);color:var(--gray-400);border-color:transparent;cursor:not-allowed;box-shadow:none}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#c93a3f}
+
+/* ---------- Generic card ---------- */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+.pad{padding:18px 20px}
+
+/* ---------- Chips ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;font:var(--text-caption);font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.chip .i{width:12px;height:12px}
+.chip.gray{background:var(--gray-100);color:var(--fg2)}
+.chip.blue{background:var(--blue-50);color:var(--accent)}
+.chip.green{background:var(--success-bg);color:var(--success)}
+.chip.red{background:var(--danger-bg);color:var(--danger)}
+.chip.amber{background:var(--warning-bg);color:var(--warning)}
+.chip.ink{background:var(--ink);color:#fff}
+.mono{font:var(--text-mono);font-feature-settings:"tnum" 1}
+
+/* ---------- Hero / Program Home ---------- */
+.home-grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+@media(max-width:980px){.home-grid{grid-template-columns:1fr}}
+.hero{background:var(--ink);color:#fff;border-radius:var(--radius-xl);padding:22px 24px;display:flex;align-items:center;gap:24px;box-shadow:var(--shadow-md);margin-bottom:18px}
+.hero .ring{width:96px;height:96px;flex:none;position:relative;display:flex;align-items:center;justify-content:center}
+.hero .ring .num{font:var(--text-metric);font-size:34px;color:#fff;letter-spacing:var(--tracking-tight)}
+.hero .htxt .sm-overline{color:rgba(255,255,255,.55)}
+.hero .htxt h2{margin:4px 0 6px;font:var(--text-h3);color:#fff}
+.hero .htxt p{margin:0;font-size:13px;color:rgba(255,255,255,.62);max-width:460px;line-height:1.5}
+.hero .hmeta{margin-left:auto;text-align:right;font-size:12px;color:rgba(255,255,255,.55)}
+.hero .hmeta b{display:block;color:#fff;font-size:13px;margin-bottom:2px}
+
+.sec-h{display:flex;align-items:center;gap:10px;margin:4px 0 13px}
+.sec-h h3{margin:0;font:var(--text-h4);color:var(--fg1)}
+.sec-h .grow{flex:1}
+
+/* phase timeline cards */
+.ptl{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px}
+.pcard{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:15px 16px;cursor:pointer;transition:box-shadow .15s,border-color .15s,transform .04s;position:relative;overflow:hidden}
+.pcard:hover{box-shadow:var(--shadow-md);border-color:var(--border-strong)}
+.pcard:active{transform:translateY(.5px)}
+.pcard .pc-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pcard .pc-no{font:var(--text-mono);font-size:11px;color:var(--fg4);font-weight:600}
+.pcard h4{margin:0 0 4px;font-size:14.5px;font-weight:600;color:var(--fg1);line-height:1.25}
+.pcard .win{font:var(--text-caption);color:var(--fg4)}
+.pcard .pc-prog{margin-top:13px}
+.prog{height:6px;border-radius:999px;background:var(--gray-150);overflow:hidden}
+.prog span{display:block;height:100%;border-radius:999px;background:var(--accent);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.prog.green span{background:var(--success)}
+.prog.amber span{background:var(--warning)}
+.pcard .pc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.pcard .pc-foot .pct{font:var(--text-mono);font-size:11.5px;color:var(--fg2);font-weight:600}
+.pcard .lockline{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--fg4);margin-top:9px}
+.pcard .lockline .i{width:12px;height:12px}
+
+/* blockers rail */
+.rail-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden}
+.rail-card .rc-h{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.rail-card .rc-h h3{margin:0;font:var(--text-h4)}
+.rail-card .rc-h .cnt{margin-left:auto}
+.blk{padding:13px 16px;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .14s}
+.blk:last-child{border-bottom:0}
+.blk:hover{background:var(--gray-50)}
+.blk .bk-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.blk .bk-age{margin-left:auto;font:var(--text-caption);color:var(--fg4)}
+.blk p{margin:0 0 7px;font-size:13px;color:var(--fg1);font-weight:500;line-height:1.4}
+.blk .own{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--fg3)}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto}
+.tab{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;cursor:pointer;padding:11px 4px;margin-right:22px;font-size:13.5px;font-weight:600;color:var(--fg3);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .14s}
+.tab:hover{color:var(--fg1)}
+.tab.on{color:var(--fg1);border-bottom-color:var(--ink)}
+.tab .c{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 5px;font:var(--text-mono);font-size:10.5px;font-weight:600;border-radius:999px;background:var(--gray-150);color:var(--fg3)}
+.tab.on .c{background:var(--blue-50);color:var(--accent)}
+
+/* ---------- Overview ---------- */
+.ov-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+@media(max-width:900px){.ov-grid{grid-template-columns:1fr}}
+.goal{background:var(--blue-50);border:1px solid var(--blue-100);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:16px}
+.goal .sm-overline{color:var(--accent)}
+.goal p{margin:7px 0 0;font-size:14.5px;line-height:1.5;color:var(--fg1)}
+.metarow{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:18px}
+.meta{min-width:120px}
+.meta .k{font:var(--text-overline);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--fg4);margin-bottom:5px}
+.meta .v{font-size:13.5px;color:var(--fg1);font-weight:600;display:flex;align-items:center;gap:7px}
+.dep{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;margin-bottom:8px}
+.dep .i{flex:none}
+.dep .dp-b{flex:1;min-width:0}
+.dep .dp-b b{font-size:13px;color:var(--fg1);display:block}
+.dep .dp-b span{font-size:11.5px;color:var(--fg3)}
+.subtle{font-size:12.5px;color:var(--fg4);line-height:1.5}
+
+/* ---------- Data objects table ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.tbl th{font:var(--text-overline);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--fg4);text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--gray-50);white-space:nowrap}
+.tbl td{padding:13px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--fg2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr.clk{cursor:pointer}
+.tbl tr.clk:hover td{background:var(--gray-25)}
+.obj-name{font-size:13.5px;font-weight:600;color:var(--fg1)}
+.obj-why{font-size:11.5px;color:var(--fg4);margin-top:2px;display:flex;align-items:center;gap:5px}
+.sync{display:inline-flex;align-items:center;gap:6px;font:var(--text-caption);font-weight:600;color:var(--success)}
+.sync .dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 0 rgba(20,160,90,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(20,160,90,.45)}70%{box-shadow:0 0 0 6px rgba(20,160,90,0)}100%{box-shadow:0 0 0 0 rgba(20,160,90,0)}}
+.method{display:inline-flex;align-items:center;gap:5px;font:var(--text-caption);font-weight:600;padding:3px 9px;border-radius:6px}
+.method.derived{background:var(--gray-100);color:var(--fg2)}
+.method.confirmed{background:var(--blue-50);color:var(--accent)}
+.method.collected{background:var(--warning-bg);color:var(--warning)}
+.method.generated{background:#efe9ff;color:#6d28d9}
+.lockicon{color:var(--fg4)}
+
+/* ---------- Kanban ---------- */
+.kan{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+@media(max-width:900px){.kan{grid-template-columns:repeat(2,1fr)}}
+.kcol{background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:11px;min-height:120px}
+.kcol .kc-h{display:flex;align-items:center;gap:7px;margin-bottom:11px;padding:2px 4px}
+.kcol .kc-h b{font-size:12.5px;font-weight:600;color:var(--fg2)}
+.kcol .kc-h .c{margin-left:auto;font:var(--text-mono);font-size:11px;color:var(--fg4)}
+.kcard{background:#fff;border:1px solid var(--border);border-radius:10px;padding:11px 12px;box-shadow:var(--shadow-xs);margin-bottom:9px;cursor:pointer;transition:box-shadow .14s,transform .04s}
+.kcard:hover{box-shadow:var(--shadow-md)}
+.kcard:active{transform:translateY(.5px)}
+.kcard p{margin:0 0 9px;font-size:13px;color:var(--fg1);font-weight:500;line-height:1.4}
+.kcard .kf{display:flex;align-items:center;gap:8px}
+.kcard .kf .due{font:var(--text-caption);color:var(--fg4);display:flex;align-items:center;gap:4px}
+.kcard .kf .due .i{width:12px;height:12px}
+.kcard .ref{display:inline-flex;align-items:center;gap:5px;font:var(--text-caption);font-weight:600;color:var(--accent);background:var(--blue-50);padding:2px 7px;border-radius:6px;margin-bottom:9px}
+
+/* ---------- Exit criteria ---------- */
+.exit-intro{display:flex;align-items:center;gap:12px;background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;margin-bottom:16px}
+.exit-intro .i{flex:none;color:var(--accent)}
+.exit-intro div{font-size:13px;color:var(--fg2);line-height:1.45}
+.exit-intro b{color:var(--fg1)}
+.crit{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:16px;margin-bottom:12px}
+.crit.met{border-color:var(--success);background:linear-gradient(0deg,var(--success-bg),#fff 60%)}
+.crit.locked{opacity:.92}
+.crit .ct-top{display:flex;align-items:flex-start;gap:12px}
+.cbox{width:22px;height:22px;border-radius:7px;border:2px solid var(--border-strong);flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;transition:.14s;margin-top:1px}
+.cbox.on{background:var(--success);border-color:var(--success);color:#fff}
+.cbox.dis{cursor:not-allowed;background:var(--gray-100);border-color:var(--border)}
+.crit .ct-b{flex:1;min-width:0}
+.crit .ct-b h4{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--fg1);line-height:1.4}
+.crit .ct-b .ev{font-size:12px;color:var(--fg4);display:flex;align-items:center;gap:6px;margin-top:7px}
+.crit .ct-b .ev a{color:var(--accent);text-decoration:none;font-weight:600}
+.live-metric{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;background:var(--gray-50);border:1px solid var(--border);border-radius:9px}
+.live-metric .lm-bar{flex:1;height:7px;border-radius:999px;background:var(--gray-200);overflow:hidden}
+.live-metric .lm-bar span{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.live-metric .lm-bar span.ok{background:var(--success)}
+.live-metric .lm-num{font:var(--text-mono);font-size:12px;font-weight:600;color:var(--fg1);white-space:nowrap}
+.live-metric .lm-tgt{font:var(--text-caption);color:var(--fg4);white-space:nowrap}
+.signoff{display:flex;align-items:center;gap:10px;margin-top:13px;padding-top:13px;border-top:1px solid var(--gray-100);flex-wrap:wrap}
+.keypill{display:inline-flex;align-items:center;gap:6px;font:var(--text-caption);font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--border)}
+.keypill.done{background:var(--success-bg);color:var(--success);border-color:transparent}
+.keypill.wait{background:var(--gray-50);color:var(--fg4)}
+.dep-warn{display:flex;align-items:flex-start;gap:8px;margin-top:11px;padding:10px 12px;background:var(--warning-bg);border:1px solid #f0d9a8;border-radius:9px;font-size:12.5px;color:#8a5d00;line-height:1.45}
+.dep-warn .i{flex:none;color:var(--warning);margin-top:1px}
+
+/* ---------- Activity ---------- */
+.feed{position:relative;padding-left:8px}
+.fitem{display:flex;gap:12px;padding-bottom:18px;position:relative}
+.fitem:before{content:"";position:absolute;left:15px;top:32px;bottom:-2px;width:2px;background:var(--gray-150)}
+.fitem:last-child:before{display:none}
+.fitem .fav{flex:none;z-index:1}
+.fitem .fb{flex:1;min-width:0;padding-top:2px}
+.fitem .fb .fh{font-size:13px;color:var(--fg2);line-height:1.5}
+.fitem .fb .fh b{color:var(--fg1);font-weight:600}
+.fitem .fb .ft{font:var(--text-caption);color:var(--fg4);margin-top:1px}
+.fitem .pin{display:inline-flex;align-items:center;gap:5px;font:var(--text-caption);font-weight:600;color:var(--accent);margin-bottom:4px}
+.fitem .quote{margin-top:7px;padding:10px 13px;background:var(--gray-50);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;font-size:13px;color:var(--fg1);line-height:1.5}
+.composer{display:flex;gap:10px;margin-top:6px;margin-bottom:20px}
+.composer .field{flex:1}
+.field{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border-strong);border-radius:9px;padding:9px 11px;transition:border-color .14s,box-shadow .14s}
+.field:focus-within{border-color:var(--accent);box-shadow:var(--ring-focus)}
+.field input,.field textarea{border:0;outline:0;background:transparent;font:var(--text-body);color:var(--fg1);width:100%;resize:none}
+.field input::placeholder,.field textarea::placeholder{color:var(--fg4)}
+
+/* ---------- Queues (Phase 3 / 4) ---------- */
+.qbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.qbar .grow{flex:1}
+.seg{display:inline-flex;background:var(--gray-50);border:1px solid var(--border);border-radius:8px;padding:2px}
+.seg button{border:0;background:transparent;font-size:12px;font-weight:600;color:var(--fg3);padding:6px 12px;border-radius:6px;cursor:pointer;transition:.14s}
+.seg button.on{background:#fff;color:var(--fg1);box-shadow:var(--shadow-xs)}
+.coverage{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:15px 18px;margin-bottom:16px}
+.coverage .cv-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.coverage .cv-top b{font-size:13.5px;color:var(--fg1)}
+.coverage .cv-num{font:var(--text-metric);font-size:26px;color:var(--fg1);letter-spacing:var(--tracking-tight)}
+.coverage .cv-num small{font-size:14px;color:var(--fg3);font-weight:500}
+.cv-track{height:10px;border-radius:999px;background:var(--gray-150);overflow:hidden;position:relative}
+.cv-track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue-400),var(--accent));transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.cv-track .gate{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.cv-gatelbl{display:flex;justify-content:flex-end;margin-top:6px;font:var(--text-caption);color:var(--fg4)}
+
+.qcard{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:15px 16px;margin-bottom:12px;transition:box-shadow .15s,opacity .3s,transform .3s}
+.qcard.cleared{opacity:.5}
+.qcard .qc-grid{display:grid;grid-template-columns:1fr 36px 1fr;gap:14px;align-items:center}
+@media(max-width:760px){.qcard .qc-grid{grid-template-columns:1fr}}
+.qside .ql{font:var(--text-overline);letter-spacing:var(--tracking-wide);text-transform:uppercase;color:var(--fg4);margin-bottom:6px}
+.qside .qv{font-size:14px;font-weight:600;color:var(--fg1)}
+.qside .qmono{font:var(--text-mono);font-size:11.5px;color:var(--fg3);margin-top:3px}
+.qside.prop{background:var(--blue-50);border:1px solid var(--blue-100);border-radius:10px;padding:11px 13px}
+.qarrow{display:flex;align-items:center;justify-content:center;color:var(--fg4)}
+.qc-foot{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:13px;border-top:1px solid var(--gray-100);flex-wrap:wrap}
+.confidence{display:inline-flex;align-items:center;gap:8px}
+.confidence .cf-bar{width:90px;height:6px;border-radius:999px;background:var(--gray-150);overflow:hidden}
+.confidence .cf-bar span{display:block;height:100%;border-radius:999px}
+.confidence .cf-num{font:var(--text-mono);font-size:12px;font-weight:600}
+.qc-foot .acts{margin-left:auto;display:flex;gap:8px}
+
+/* counterparty rows */
+.cpt{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:14px 16px;margin-bottom:11px}
+.cpt .cp-top{display:flex;align-items:center;gap:11px}
+.cpt .rank{width:26px;height:26px;border-radius:7px;background:var(--gray-100);color:var(--fg3);font:var(--text-mono);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+.cpt .cp-name b{font-size:14px;color:var(--fg1);font-weight:600}
+.cpt .cp-name span{font-size:11.5px;color:var(--fg4);display:block}
+.cpt .cp-vol{margin-left:auto;text-align:right}
+.cpt .cp-vol .vn{font:var(--text-mono);font-size:13px;font-weight:600;color:var(--fg1)}
+.cpt .cp-vol .vl{font:var(--text-caption);color:var(--fg4)}
+.cpt .cp-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:13px;padding-top:13px;border-top:1px solid var(--gray-100)}
+@media(max-width:760px){.cpt .cp-fields{grid-template-columns:1fr}}
+.flabel{display:block;font-size:11.5px;font-weight:500;color:var(--fg3);margin-bottom:5px}
+
+/* discrepancy builder */
+.dr-steps{display:flex;flex-direction:column;gap:0;margin-bottom:18px}
+.dstep{display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--gray-100)}
+.dstep:last-child{border-bottom:0}
+.dstep .dnum{width:26px;height:26px;border-radius:50%;border:2px solid var(--border-strong);color:var(--fg4);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.dstep.done .dnum{background:var(--success);border-color:var(--success);color:#fff}
+.dstep .ds-b{flex:1}
+.dstep .ds-b b{font-size:13.5px;color:var(--fg1)}
+.dstep .ds-b p{margin:3px 0 0;font-size:12.5px;color:var(--fg3);line-height:1.45}
+.var-tbl td .fac{font-weight:600;color:var(--fg1)}
+.aging{font:var(--text-mono);font-size:11.5px}
+.locktag{display:inline-flex;align-items:center;gap:6px;font:var(--text-caption);font-weight:600;color:var(--warning);background:var(--warning-bg);padding:5px 11px;border-radius:999px}
+
+/* ---------- People / table-ish ---------- */
+.ppl-row{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:13px 16px;margin-bottom:10px}
+.ppl-row .pp-b{min-width:0}
+.ppl-row .pp-b b{font-size:14px;color:var(--fg1);font-weight:600}
+.ppl-row .pp-b span{font-size:12px;color:var(--fg4);display:block}
+.ppl-row .pp-roles{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:55%}
+.rolechip{display:inline-flex;align-items:center;gap:5px;font:var(--text-caption);font-weight:600;padding:3px 9px;border-radius:7px;background:var(--gray-100);color:var(--fg2)}
+.rolechip.mgr{background:var(--blue-50);color:var(--accent)}
+.rolechip.lead{background:var(--ink);color:#fff}
+
+/* audit */
+.audit-row{display:flex;align-items:center;gap:13px;padding:12px 4px;border-bottom:1px solid var(--gray-100)}
+.audit-row .a-ico{width:34px;height:34px;border-radius:9px;background:var(--gray-50);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--fg3);flex:none}
+.audit-row .a-b{flex:1;min-width:0}
+.audit-row .a-b p{margin:0;font-size:13px;color:var(--fg1);line-height:1.45}
+.audit-row .a-b p b{font-weight:600}
+.audit-row .a-t{font:var(--text-mono);font-size:11px;color:var(--fg4);white-space:nowrap}
+
+/* risk */
+.risk{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:15px 16px;margin-bottom:12px}
+.risk .rk-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.risk h4{margin:0;font-size:14px;font-weight:600;color:var(--fg1);flex:1}
+.risk p{margin:0;font-size:13px;color:var(--fg3);line-height:1.5}
+.risk .rk-meta{display:flex;align-items:center;gap:14px;margin-top:11px;font-size:12px;color:var(--fg4)}
+.risk .rk-meta b{color:var(--fg2)}
+
+/* lock/restricted screen */
+.locked-view{max-width:520px;margin:60px auto;text-align:center}
+.locked-view .lk-ico{width:62px;height:62px;border-radius:16px;background:var(--gray-50);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--fg4);margin:0 auto 18px}
+.locked-view h2{margin:0 0 8px;font:var(--text-h3)}
+.locked-view p{margin:0 auto;font-size:14px;color:var(--fg3);line-height:1.6;max-width:400px}
+
+/* empty / banner */
+.banner{display:flex;align-items:center;gap:11px;background:var(--blue-50);border:1px solid var(--blue-100);border-radius:11px;padding:11px 15px;margin-bottom:18px;font-size:13px;color:var(--fg2);line-height:1.45}
+.banner .i{color:var(--accent);flex:none}
+.banner b{color:var(--fg1)}
+
+.redacted{display:inline-flex;align-items:center;gap:7px;background:var(--gray-50);border:1px dashed var(--border-strong);border-radius:9px;padding:9px 12px;font-size:12.5px;color:var(--fg3)}
+.redacted .i{color:var(--fg4)}
+
+/* ---------- Slide-over panel ---------- */
+.scrim{position:fixed;inset:0;background:rgba(16,24,40,.34);opacity:0;pointer-events:none;z-index:40;transition:opacity .22s}
+.scrim.show{opacity:1;pointer-events:auto}
+.panel{position:fixed;top:0;right:-560px;height:100vh;width:460px;max-width:94vw;background:#fff;z-index:50;box-shadow:var(--shadow-xl);border-left:1px solid var(--border);display:flex;flex-direction:column;transition:right .26s cubic-bezier(.2,.8,.2,1)}
+.panel.show{right:0}
+.panel-head{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid var(--border)}
+.panel-head h2{margin:0;font:var(--text-h3);color:var(--fg1)}
+.panel-head .x{margin-left:auto}
+.panel-body{flex:1;overflow-y:auto;padding:20px 22px}
+.panel-foot{display:flex;align-items:center;gap:10px;padding:16px 22px;border-top:1px solid var(--border)}
+.panel-foot .grow{flex:1}
+.icon-btn{width:34px;height:34px;border:1px solid var(--border);background:#fff;border-radius:9px;color:var(--fg3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s}
+.icon-btn:hover{background:var(--gray-50);color:var(--fg1)}
+.fblabel{display:block;font-size:12.5px;font-weight:600;color:var(--fg2);margin-bottom:7px}
+.fb-context{display:flex;align-items:center;gap:8px;background:var(--gray-50);border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin-bottom:16px;font-size:12.5px;color:var(--fg3)}
+.fb-context b{color:var(--fg1)}
+.fb-note{background:var(--gray-50);border:1px solid var(--border);border-radius:10px;padding:12px 13px;margin-bottom:10px}
+.fb-note .fn-top{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.fb-note .fn-where{font:var(--text-caption);font-weight:600;color:var(--accent)}
+.fb-note .fn-time{margin-left:auto;font:var(--text-caption);color:var(--fg4)}
+.fb-note p{margin:0;font-size:13px;color:var(--fg1);line-height:1.45}
+.fb-note .fn-del{border:0;background:transparent;color:var(--fg4);cursor:pointer;padding:2px;display:flex}
+.fb-note .fn-del:hover{color:var(--danger)}
+.fb-empty{text-align:center;color:var(--fg4);font-size:13px;padding:24px 0}
+
+/* feedback FAB */
+.fab{position:fixed;bottom:22px;right:22px;z-index:35;display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 18px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-lg);transition:background .14s,transform .04s}
+.fab:hover{background:var(--accent-hover)}
+.fab:active{transform:translateY(.5px)}
+.fab .badge{background:#fff;color:var(--accent);font:var(--text-mono);font-size:11px;font-weight:700;border-radius:999px;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+
+/* toast */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;display:flex;align-items:center;gap:9px;padding:11px 16px;border-radius:11px;box-shadow:var(--shadow-lg);font-size:13.5px;font-weight:500;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast .i{color:var(--success)}
+
+/* demo ribbon in rail */
+.proto-tag{writing-mode:vertical-rl;font:var(--text-overline);letter-spacing:.12em;text-transform:uppercase;color:var(--fg4);margin-top:4px}
+.divider{height:1px;background:var(--gray-100);margin:18px 0}
+.flex{display:flex}.ai-c{align-items:center}.gap8{gap:8px}.gap10{gap:10px}.gap12{gap:12px}.wrap{flex-wrap:wrap}
+.mb0{margin-bottom:0}.mt16{margin-top:16px}.mt8{margin-top:8px}
+.muted-card{background:var(--gray-50);border:1px dashed var(--border-strong);border-radius:var(--radius-lg);padding:26px;text-align:center;color:var(--fg4);font-size:13px}
+.subms{display:flex;flex-direction:column;gap:10px}
+.subm{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--border);border-radius:11px;padding:13px 15px}
+.subm .sm-no{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font:var(--text-mono);font-size:11px;font-weight:700;flex:none}
+.subm.done .sm-no{background:var(--success);color:#fff}
+.subm.active .sm-no{background:var(--accent);color:#fff}
+.subm.todo .sm-no{background:var(--gray-100);color:var(--fg4)}
+.subm .sm-b{flex:1}
+.subm .sm-b b{font-size:13.5px;color:var(--fg1)}
+.subm .sm-b span{font-size:12px;color:var(--fg4);display:block}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- slide-over: feedback -->
+<div class="scrim" id="scrim" onclick="closePanel()"></div>
+<aside class="panel" id="panel">
+  <div class="panel-head">
+    <span style="width:30px;height:30px;border-radius:8px;background:var(--blue-50);display:flex;align-items:center;justify-content:center;color:var(--accent)"><i data-lucide="message-square-text"></i></span>
+    <h2>Feedback</h2>
+    <button class="icon-btn x" onclick="closePanel()" aria-label="Close"><i data-lucide="x"></i></button>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+  <div class="panel-foot">
+    <button class="btn btn-ghost" onclick="exportFeedback()"><i data-lucide="download" style="width:15px;height:15px"></i>Export all</button>
+    <span class="grow"></span>
+    <button class="btn btn-accent" id="fbSubmit" onclick="submitFeedback()">Add note</button>
+  </div>
+</aside>
+
+<button class="fab" onclick="openFeedback()"><i data-lucide="message-square-plus" style="width:17px;height:17px"></i>Feedback<span class="badge" id="fbCount" style="display:none">0</span></button>
+<div class="toast" id="toast"><i class="i" data-lucide="check-circle-2"></i><span id="toastMsg"></span></div>
+
+<script>
+/* ============================================================================
+   DATA MODEL — derived from the Onboarding Dashboard functional spec
+   ========================================================================== */
+const PHASES = [
+  {
+    id:0, name:"Pre-flight & Security", short:"Pre-flight", icon:"shield-check", window:"Weeks 0–2",
+    status:"complete", state:"NJ",
+    goal:"Establish secure foundations — SSO, SCIM provisioning, environment access, and a passed security review — before any regulated data flows into the program.",
+    feeds:[], dependsLabel:"Gates Phase 1 (SSO) and Phase 2 (license scope).",
+    mgr:{name:"Marcus Webb",initials:"MW",g:"g1"},
+    objects:[
+      {name:"SSO configuration",sor:"Curaleaf IdP",method:"collected",status:"Validated",owner:"Marcus Webb",why:"Identity assertions are configured per-tenant; nothing in Metrc to derive."},
+      {name:"SCIM provisioning endpoint",sor:"Curaleaf IdP",method:"generated",status:"Delivered",owner:"Trellis Platform",why:""},
+      {name:"Environment credentials",sor:"Curaleaf IT",method:"collected",status:"Validated",owner:"Marcus Webb",why:"ERP and Metrc API keys are issued by Curaleaf; must be collected securely."},
+      {name:"Security review attestation",sor:"Trellis Security",method:"collected",status:"Validated",owner:"Trellis Security",why:"SOC 2 control evidence; signed artifact, not derivable."},
+    ],
+    tasks:[
+      {t:"Configure SAML SSO with Curaleaf Okta",col:"done",due:"May 6",who:"MW"},
+      {t:"Stand up SCIM bridge + map default attributes",col:"done",due:"May 8",who:"MW"},
+      {t:"Issue scoped Metrc + ERP API keys",col:"done",due:"May 9",who:"MW"},
+      {t:"Complete pre-engagement security review",col:"done",due:"May 12",who:"Trellis Sec"},
+    ],
+    criteria:[
+      {t:"SSO live and verified for both tenants",met:true,attested:true,leadA:true,leadB:true,ev:{type:"link",label:"okta-config.pdf"}},
+      {t:"SCIM provisioning confirmed end-to-end",met:true,attested:true,leadA:true,leadB:true,ev:{type:"obj",label:"SCIM endpoint"}},
+      {t:"Security review signed by both parties",met:true,attested:true,leadA:true,leadB:true,ev:{type:"link",label:"security-review-v1.pdf"}},
+    ],
+    activity:[
+      {who:"Dana Ruiz",g:"g3",text:"countersigned the final exit criterion. Phase 0 is <b>Complete</b>.",time:"May 12",signoff:true},
+      {who:"Benjamin Yang",g:"g1",text:"attested all exit criteria for review.",time:"May 12"},
+      {pin:true,who:"Benjamin Yang",g:"g1",text:"pinned a decision.",quote:"SSO is live — Phase 1 user provisioning is unblocked as of 5/9.",time:"May 9"},
+    ],
+  },
+  {
+    id:1, name:"Entity & Identity Graph", short:"Entity graph", icon:"git-fork", window:"Weeks 1–3",
+    status:"complete", state:"NJ",
+    goal:"Map the corporate entity structure and the license-to-entity relationships, and layer SCIM-provisioned users with phase-level access grants.",
+    feeds:[0], dependsLabel:"Feeds Phase 2 (license-to-entity mapping is its exit dependency).",
+    mgr:{name:"Benjamin Yang",initials:"BY",g:"g1"},
+    objects:[
+      {name:"Entity org chart",sor:"Curaleaf Legal",method:"collected",status:"Validated",owner:"Curaleaf Legal",why:"Corporate structure lives in legal records, not Metrc."},
+      {name:"License-to-entity mapping",sor:"Curaleaf + Metrc",method:"confirmed",status:"Validated",owner:"Sarah Chen",why:""},
+      {name:"User roster",sor:"Curaleaf IdP (SCIM)",method:"derived",status:"Validated",owner:"—",why:""},
+    ],
+    tasks:[
+      {t:"Collect corporate entity org chart",col:"done",due:"May 14",who:"Legal"},
+      {t:"Reconcile 20 licenses against legal entities",col:"done",due:"May 19",who:"SC"},
+      {t:"Confirm license-to-entity mapping with state ops",col:"done",due:"May 21",who:"PN"},
+    ],
+    criteria:[
+      {t:"License-to-entity mapping complete and confirmed",met:true,attested:true,leadA:true,leadB:true,ev:{type:"obj",label:"License-to-entity mapping"}},
+      {t:"User roster provisioning via SCIM verified",met:true,attested:true,leadA:true,leadB:true,ev:{type:"link",label:"scim-audit.csv"}},
+    ],
+    dep:{phase:0, label:"Phase 0 SSO live", met:true},
+    activity:[
+      {who:"Dana Ruiz",g:"g3",text:"countersigned. Phase 1 is <b>Complete</b> — Phase 2 exit dependency satisfied.",time:"May 22",signoff:true},
+      {who:"Priya Nair",g:"g6",text:"confirmed the NJ license-to-entity rows.",time:"May 21"},
+    ],
+  },
+  {
+    id:2, name:"Regulatory Spine via Metrc", short:"Regulatory spine", icon:"radio-tower", window:"Weeks 2–5",
+    status:"exit_review", state:"NJ",
+    goal:"Establish the regulatory spine: sync all in-scope Metrc licenses on schedule, confirm the facility graph with state ops leads, and backfill historical manifests validated against record counts.",
+    feeds:[1], dependsLabel:"Gates Phases 3 and 4 — both need the manifest backfill landed before they can exit.",
+    mgr:{name:"Sarah Chen",initials:"SC",g:"g4"},
+    objects:[
+      {name:"License sync feed",sor:"Metrc",method:"derived",status:"In Progress",owner:"—",why:""},
+      {name:"Package & lot inventory",sor:"Metrc",method:"derived",status:"Validated",owner:"—",why:""},
+      {name:"Facility graph",sor:"Curaleaf + Metrc",method:"confirmed",status:"Delivered",owner:"Sarah Chen",why:""},
+      {name:"Manifest backfill",sor:"Metrc history",method:"generated",status:"In Progress",owner:"Marcus Webb",why:""},
+      {name:"License scope register",sor:"Curaleaf Compliance",method:"collected",status:"Validated",owner:"Sarah Chen",why:"Which of 24 licenses are in scope is a compliance decision, not a Metrc field."},
+    ],
+    tasks:[
+      {t:"Validate manifest backfill record counts",col:"doing",due:"Jun 12",who:"MW",ref:"Manifest backfill"},
+      {t:"Confirm NJ facility graph with state ops",col:"doing",due:"Jun 11",who:"PN",ref:"Facility graph"},
+      {t:"Resolve 2 licenses failing scheduled sync",col:"todo",due:"Jun 13",who:"MW",ref:"License sync feed"},
+      {t:"Document license scope exceptions (4 out-of-scope)",col:"done",due:"Jun 4",who:"SC"},
+      {t:"Schedule weekly sync-health review",col:"todo",due:"Jun 16",who:"SC"},
+    ],
+    criteria:[
+      {t:"All in-scope licenses syncing on schedule",met:false,attested:false,leadA:false,leadB:false,
+        live:{cur:18,tgt:20,unit:" licenses",pct:90,target:100,label:"18 of 20 in-scope licenses syncing"},ev:{type:"obj",label:"License sync feed"}},
+      {t:"Facility graph confirmed by state ops leads",met:true,attested:true,leadA:false,leadB:false,ev:{type:"obj",label:"Facility graph"}},
+      {t:"Backfill validated against record counts",met:false,attested:false,leadA:false,leadB:false,
+        live:{cur:96.1,tgt:100,unit:"%",pct:96,target:100,label:"96.1% of manifest records reconciled"},ev:{type:"obj",label:"Manifest backfill"}},
+    ],
+    dep:{phase:1, label:"Phase 1 license-to-entity mapping", met:true},
+    activity:[
+      {who:"Sarah Chen",g:"g4",text:"confirmed the facility graph and attested criterion 2. Awaiting backfill validation before full exit review.",time:"2h ago"},
+      {pin:true,who:"Sarah Chen",g:"g4",text:"pinned a decision.",quote:"Beachhead state = NJ, confirmed by sponsor 6/14. FL licenses stay out of scope until state 2.",time:"Jun 8"},
+      {who:"Marcus Webb",g:"g1",text:"flagged a blocker: Metrc API rate limit is throttling the backfill replay.",time:"Jun 8",blocker:true},
+      {who:"Priya Nair",g:"g6",text:"@Sarah Chen the Bellmawr cultivation site maps to two license IDs in Metrc — which is canonical?",time:"Jun 7"},
+    ],
+  },
+  {
+    id:3, name:"Product Registry & Entity Resolution", short:"Product registry", icon:"boxes", window:"Weeks 4–8",
+    status:"in_progress", state:"multi", module:"exceptions",
+    goal:"Resolve Metrc item variants to a canonical SKU registry through an entity-resolution pipeline, reaching ≥95% volume-weighted coverage with documented governance for new items.",
+    feeds:[2], dependsLabel:"Feeds Phase 5 (coverage gate) and Phase 6 (canonical SKUs for invoicing).",
+    mgr:{name:"Marcus Webb",initials:"MW",g:"g1"},
+    objects:[
+      {name:"Metrc item variant feed",sor:"Metrc",method:"derived",status:"In Progress",owner:"—",why:""},
+      {name:"Match-confidence model output",sor:"Trellis ER pipeline",method:"generated",status:"In Progress",owner:"Trellis ER",why:""},
+      {name:"Canonical SKU registry",sor:"Trellis (Curaleaf-confirmed)",method:"generated",status:"In Progress",owner:"Marcus Webb",why:""},
+      {name:"New-item governance doc",sor:"Curaleaf Ops",method:"collected",status:"Delivered",owner:"Sarah Chen",why:"A process agreement; authored jointly, can't be derived."},
+    ],
+    tasks:[
+      {t:"Clear NJ exception queue below 0.7 confidence",col:"doing",due:"Jun 13",who:"PN",ref:"Match-confidence model output"},
+      {t:"Document new-item governance workflow",col:"done",due:"Jun 6",who:"SC"},
+      {t:"Tune ER thresholds for concentrate variants",col:"todo",due:"Jun 17",who:"Trellis ER"},
+    ],
+    criteria:[
+      {t:"≥95% of active items mapped (volume-weighted)",met:false,attested:false,leadA:false,leadB:false,
+        live:{cur:92.4,tgt:95,unit:"%",pct:92.4,target:95,label:"92.4% volume-weighted coverage"},ev:{type:"obj",label:"Canonical SKU registry"}},
+      {t:"New-item governance documented",met:true,attested:false,leadA:false,leadB:false,ev:{type:"obj",label:"New-item governance doc"}},
+    ],
+    dep:{phase:2, label:"Phase 2 complete", met:false},
+    activity:[
+      {who:"Priya Nair",g:"g6",text:"cleared 23 exceptions in the NJ working session. Coverage climbed to 92.4%.",time:"5h ago"},
+      {who:"Marcus Webb",g:"g1",text:"re-ran the ER pipeline; 41 low-confidence matches routed to the queue.",time:"Jun 8"},
+    ],
+  },
+  {
+    id:4, name:"Counterparty Graph", short:"Counterparty graph", icon:"network", window:"Weeks 4–8",
+    status:"in_progress", state:"multi", module:"counterparty",
+    goal:"Build the counterparty registry and confirm the commercial deltas — contacts, payment terms, credit limits — for the counterparties making up the top 80% of volume.",
+    feeds:[2], dependsLabel:"Feeds Phase 6 (counterparty terms for 3-way match invoicing).",
+    mgr:{name:"Priya Nair",initials:"PN",g:"g6"},
+    objects:[
+      {name:"Counterparty feed",sor:"Metrc transfers",method:"derived",status:"Validated",owner:"—",why:""},
+      {name:"Volume ranking",sor:"Metrc transfers",method:"derived",status:"Validated",owner:"—",why:""},
+      {name:"Commercial terms",sor:"Curaleaf Finance",method:"collected",status:"In Progress",owner:"Curaleaf Finance",why:"Payment terms and credit limits live in the ERP / contracts, never in Metrc."},
+    ],
+    tasks:[
+      {t:"Confirm terms for top-20 counterparties by volume",col:"doing",due:"Jun 14",who:"Finance",ref:"Commercial terms"},
+      {t:"Resolve duplicate counterparty records",col:"todo",due:"Jun 16",who:"PN"},
+    ],
+    criteria:[
+      {t:"≥80% of counterparty volume confirmed",met:false,attested:false,leadA:false,leadB:false,
+        live:{cur:67,tgt:80,unit:"%",pct:67,target:80,label:"67% of volume confirmed"},ev:{type:"obj",label:"Commercial terms"}},
+    ],
+    dep:{phase:2, label:"Phase 2 complete", met:false},
+    activity:[
+      {who:"Curaleaf Finance",g:"g5",text:"confirmed terms for 6 counterparties. Volume coverage now 67%.",time:"1d ago"},
+    ],
+  },
+  {
+    id:5, name:"Operational Go-Live (Wedge)", short:"Operational go-live", icon:"rocket", window:"Weeks 6–10",
+    status:"blocked", state:"NJ", module:"discrepancy",
+    goal:"Stand up reconciliation on schedule in the beachhead state, get the discrepancy workflow adopted by a facility team, and route open orders through Canopy order objects — proving value by the Week-6 baseline report.",
+    feeds:[3,4], dependsLabel:"Feeds Phase 6 (live order objects gate the financial layer).",
+    mgr:{name:"Priya Nair",initials:"PN",g:"g6"},
+    objects:[
+      {name:"Reconciliation engine",sor:"Trellis (Metrc×ERP)",method:"generated",status:"In Progress",owner:"Trellis",why:""},
+      {name:"Discrepancy report",sor:"Trellis",method:"generated",status:"Pending",owner:"Priya Nair",why:""},
+      {name:"Canopy order objects",sor:"Curaleaf ERP",method:"confirmed",status:"Pending",owner:"Curaleaf Ops",why:""},
+    ],
+    tasks:[
+      {t:"Unblock ERP read access for reconciliation",col:"todo",due:"Jun 11",who:"Curaleaf IT",blocker:true},
+      {t:"Build Week-6 baseline discrepancy report",col:"doing",due:"Jun 15",who:"PN",ref:"Discrepancy report"},
+      {t:"Onboard Bellmawr team to discrepancy workflow",col:"todo",due:"Jun 18",who:"PN"},
+    ],
+    criteria:[
+      {t:"Reconciliation running on schedule",met:false,attested:false,leadA:false,leadB:false,ev:{type:"obj",label:"Reconciliation engine"}},
+      {t:"Discrepancy workflow adopted by ≥1 facility team",met:false,attested:false,leadA:false,leadB:false,ev:{type:"link",label:"adoption sign-off"}},
+      {t:"Open orders flowing through Canopy order objects",met:false,attested:false,leadA:false,leadB:false,ev:{type:"obj",label:"Canopy order objects"}},
+    ],
+    dep:{phase:3, label:"Phases 3 & 4 complete", met:false, multi:[3,4]},
+    activity:[
+      {who:"Priya Nair",g:"g6",text:"raised a blocker: ERP access delayed by Curaleaf IT — reconciliation can't start.",time:"6d ago",blocker:true},
+      {pin:true,who:"Dana Ruiz",g:"g3",text:"pinned a decision.",quote:"Pre-brief the sponsor on variance before the Week-6 report is shared. No surprises in the exec channel.",time:"Jun 5"},
+    ],
+  },
+  {
+    id:6, name:"Financial Layer", short:"Financial layer", icon:"landmark", window:"Weeks 9–14",
+    status:"not_started", state:"NJ",
+    goal:"Layer the financial workflows on the proven wedge: reporting-mode 3-way match, then match-gated invoicing, then ACH opt-in — each behind its own mini-gate so the active mode is never ambiguous.",
+    feeds:[3,4,5], dependsLabel:"Terminal phase for state 1. Becomes the template Phase 7 stamps.",
+    mgr:{name:"Curaleaf Finance",initials:"CF",g:"g5"},
+    objects:[
+      {name:"3-way match engine",sor:"Trellis (PO×Metrc×Invoice)",method:"generated",status:"Pending",owner:"Trellis",why:""},
+      {name:"Invoice register",sor:"Curaleaf ERP",method:"confirmed",status:"Pending",owner:"Curaleaf Finance",why:""},
+      {name:"ACH authorization",sor:"Curaleaf Finance",method:"collected",status:"Pending",owner:"Curaleaf Finance",why:"Banking authorization is a signed, collected artifact — never derivable."},
+    ],
+    tasks:[],
+    submilestones:[
+      {t:"Reporting mode",d:"3-way match runs in observe-only; variances reported, nothing posts.",state:"active"},
+      {t:"Match-gated invoicing",d:"Invoices post only when the 3-way match clears.",state:"todo"},
+      {t:"ACH opt-in",d:"Facilities opt into automated ACH settlement.",state:"todo"},
+    ],
+    criteria:[
+      {t:"3-way match validated in reporting mode",met:false,attested:false,leadA:false,leadB:false,ev:{type:"obj",label:"3-way match engine"}},
+      {t:"Match-gated invoicing live for ≥1 facility",met:false,attested:false,leadA:false,leadB:false,ev:{type:"link",label:"invoicing sign-off"}},
+      {t:"ACH opt-in flow documented and tested",met:false,attested:false,leadA:false,leadB:false,ev:{type:"link",label:"ach-runbook.pdf"}},
+    ],
+    dep:{phase:5, label:"Phase 5 complete", met:false},
+    activity:[
+      {who:"Dana Ruiz",g:"g3",text:"created the Phase 6 workspace. Locked until the wedge proves value — gate won't open early.",time:"Jun 1"},
+    ],
+  },
+];
+
+const BLOCKERS = [
+  {phase:5, text:"ERP access delayed by Curaleaf IT — reconciliation can't start", owner:"Curaleaf Program Lead", age:"6d", sev:"red"},
+  {phase:2, text:"Metrc API rate limit throttling the manifest backfill replay", owner:"Trellis Program Lead", age:"2d", sev:"amber"},
+  {phase:2, text:"Bellmawr site maps to two license IDs — canonical pending", owner:"NJ State Ops Lead", age:"3d", sev:"amber"},
+];
+
+const PEOPLE = [
+  {name:"Benjamin Yang", email:"ben@trellis.io", g:"g1", roles:[{p:"all",r:"Trellis Program Lead",lead:true}]},
+  {name:"Dana Ruiz", email:"dana.ruiz@curaleaf.com", g:"g3", roles:[{p:"all",r:"Curaleaf Program Lead",lead:true}]},
+  {name:"Evelyn Cross", email:"evelyn.cross@curaleaf.com", g:"g2", roles:[{p:"all",r:"Executive Sponsor"}]},
+  {name:"Sarah Chen", email:"sarah.chen@curaleaf.com", g:"g4", roles:[{p:2,r:"Phase Manager",mgr:true}]},
+  {name:"Marcus Webb", email:"marcus.webb@trellis.io", g:"g1", roles:[{p:0,r:"Phase Manager",mgr:true},{p:2,r:"Contributor"},{p:3,r:"Phase Manager",mgr:true},{p:5,r:"Contributor"},{p:6,r:"Contributor"}]},
+  {name:"Priya Nair", email:"priya.nair@curaleaf.com", g:"g6", roles:[{p:2,r:"Contributor"},{p:3,r:"Contributor"},{p:4,r:"Phase Manager",mgr:true},{p:5,r:"Phase Manager",mgr:true}], state:"NJ"},
+  {name:"Curaleaf Finance", email:"ap@curaleaf.com", g:"g5", roles:[{p:4,r:"Contributor"},{p:6,r:"Phase Manager",mgr:true}]},
+];
+
+const RISKS = [
+  {sev:"red", title:"State-ops disengagement", phase:3, owner:"Curaleaf Program Lead",
+   text:"Structured working sessions drift to async, exceptions stop clearing. Early-warning indicator: items-cleared-per-session trending toward zero.", ind:"Items cleared / session"},
+  {sev:"amber", title:"Week-6 report surfaces uncomfortable variances", phase:5, owner:"Both Program Leads",
+   text:"The baseline report will expose real Metrc↔ERP gaps. Unmanaged, it lands badly in the exec channel. Mitigation: the builder forces a sponsor pre-brief before share unlocks.", ind:"Pre-brief gate"},
+  {sev:"red", title:"ERP access delayed by Curaleaf IT", phase:5, owner:"Curaleaf Program Lead",
+   text:"Reconciliation cannot begin without ERP read access. Escalation path runs straight to the executive sponsor.", ind:"Days blocked: 6"},
+  {sev:"amber", title:"Access sprawl / SOC 2 exposure", phase:1, owner:"Both Program Leads",
+   text:"Compliance and pre-release financial data are in scope. Adds are leads-only; every grant is audit-logged as SOC 2 evidence.", ind:"Leads-only grants"},
+];
+
+const AUDIT = [
+  {ico:"user-plus", text:"<b>Dana Ruiz</b> added <b>Sarah Chen</b> to <b>Phase 2</b> as Phase Manager", t:"Jun 3 · 14:22"},
+  {ico:"check-check", text:"<b>Dana Ruiz</b> countersigned exit criterion <i>License-to-entity mapping complete</i> · Phase 1", t:"May 22 · 09:10"},
+  {ico:"check-check", text:"<b>Benjamin Yang</b> countersigned exit criterion <i>License-to-entity mapping complete</i> · Phase 1", t:"May 22 · 09:04"},
+  {ico:"shield-check", text:"<b>Benjamin Yang</b> marked <b>Phase 0</b> Complete — both leads countersigned", t:"May 12 · 16:40"},
+  {ico:"user-plus", text:"<b>Benjamin Yang</b> added <b>Priya Nair</b> to Phases 2–5 as Contributor (NJ scope)", t:"May 10 · 11:33"},
+  {ico:"key-round", text:"<b>Marcus Webb</b> requested access for <b>Curaleaf Finance</b> to Phase 4 — pending leads", t:"Jun 7 · 15:02"},
+  {ico:"lock", text:"<b>Dana Ruiz</b> created Phase 6 workspace (locked pending Phase 5)", t:"Jun 1 · 10:00"},
+];
+
+/* ---------- Personas (the "Viewing as" switcher) ---------- */
+const PERSONAS = {
+  trellis:{name:"Benjamin Yang", email:"ben@trellis.io", role:"Trellis Program Lead", initials:"BY", g:"g1", lead:true, scope:"Full program access"},
+  curaleaf:{name:"Dana Ruiz", email:"dana.ruiz@curaleaf.com", role:"Curaleaf Program Lead", initials:"DR", g:"g3", lead:true, scope:"Full program access"},
+  sponsor:{name:"Evelyn Cross", email:"evelyn.cross@curaleaf.com", role:"Executive Sponsor", initials:"EC", g:"g2", sponsor:true, readonly:true, scope:"Read-only, all phases"},
+  sarah:{name:"Sarah Chen", email:"sarah.chen@curaleaf.com", role:"Phase Manager", initials:"SC", g:"g4", phases:{2:"Phase Manager"}, scope:"Phase 2 only"},
+  marcus:{name:"Marcus Webb", email:"marcus.webb@trellis.io", role:"Data / Integration Engineer", initials:"MW", g:"g1", phases:{0:"Phase Manager",2:"Contributor",3:"Phase Manager",5:"Contributor",6:"Contributor"}, scope:"Phases 0, 2, 3, 5, 6"},
+  priya:{name:"Priya Nair", email:"priya.nair@curaleaf.com", role:"NJ State Ops Lead", initials:"PN", g:"g6", phases:{2:"Contributor",3:"Contributor",4:"Phase Manager",5:"Phase Manager"}, state:"NJ", scope:"Phases 2–5 · NJ scope"},
+};
+
+const STATUS_META = {
+  not_started:{label:"Not started", chip:"gray", prog:"amber"},
+  in_progress:{label:"In progress", chip:"blue", prog:""},
+  blocked:{label:"In progress", chip:"blue", prog:""},
+  exit_review:{label:"Exit review", chip:"amber", prog:""},
+  complete:{label:"Complete", chip:"green", prog:"green"},
+};
+
+/* Week-6 baseline countdown */
+const BASELINE_DATE = new Date("2026-06-15T00:00:00");
+function daysToBaseline(){
+  const now = new Date();
+  const d = Math.ceil((BASELINE_DATE - now)/(1000*60*60*24));
+  return d;
+}
+
+/* ============================================================================
+   APP STATE
+   ========================================================================== */
+const STATE = {
+  persona: "trellis",
+  view: "home",     // home | phase | people | risk | audit
+  phase: 2,
+  tab: "overview",  // overview | objects | tasks | exit | activity | module
+  personaMenu: false,
+  qFilter: "all",   // queue state filter
+  session: false,   // working-session mode (phase 3)
+  cleared: {},      // queue items cleared this session
+  prebrief: false,  // discrepancy builder pre-brief
+};
+// mutable sign-off overlay so the demo is interactive
+const SIGN = {};
+function critKey(p,i){return p+":"+i;}
+function getCrit(p,i){
+  const base = PHASES[p].criteria[i];
+  const o = SIGN[critKey(p,i)] || {};
+  return {...base, ...o};
+}
+
+let FEEDBACK = [];
+try{ FEEDBACK = JSON.parse(localStorage.getItem("ob_feedback")||"[]"); }catch(e){}
+
+function persona(){ return PERSONAS[STATE.persona]; }
+function canSeeProgram(){ const p=persona(); return p.lead||p.sponsor; }
+function visiblePhases(){
+  const p=persona();
+  if(p.lead||p.sponsor) return PHASES.map(x=>x.id);
+  return Object.keys(p.phases||{}).map(Number).sort((a,b)=>a-b);
+}
+function roleInPhase(pid){
+  const p=persona();
+  if(p.lead) return "Program Lead";
+  if(p.sponsor) return "Viewer";
+  return (p.phases||{})[pid] || null;
+}
+function canEdit(pid){
+  const r=roleInPhase(pid);
+  return r==="Program Lead"||r==="Phase Manager"||r==="Contributor";
+}
+function isManager(pid){ const r=roleInPhase(pid); return r==="Phase Manager"||r==="Program Lead"; }
+
+/* ============================================================================
+   RENDER
+   ========================================================================== */
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const root = document.getElementById("root");
+  root.innerHTML = `
+    <div class="app">
+      ${railHTML()}
+      ${navHTML()}
+      <div class="main">
+        ${topbarHTML()}
+        <div class="scroll"><div class="content" id="view">${viewHTML()}</div></div>
+      </div>
+    </div>`;
+  refreshFab();
+  window.lucide && lucide.createIcons();
+}
+
+function railHTML(){
+  const icons = canSeeProgram()
+    ? ["layout-dashboard","layers","users","shield-alert","scroll-text"]
+    : ["layers"];
+  return `<div class="rail">
+    <div class="mark">${logoMark()}</div>
+    <button class="rail-btn active" title="Program"><i data-lucide="layers"></i></button>
+    <div class="rail-spacer"></div>
+    <span class="proto-tag">Prototype</span>
+    ${avatar(persona().initials, 32, persona().g)}
+  </div>`;
+}
+
+function navHTML(){
+  const p = persona();
+  const phs = visiblePhases();
+  const leadOnly = p.lead;
+  let phaseItems = phs.map(pid=>{
+    const ph = PHASES[pid];
+    const sm = STATUS_META[ph.status];
+    const active = STATE.view==="phase" && STATE.phase===pid;
+    const blocked = BLOCKERS.some(b=>b.phase===pid);
+    return `<button class="nav-item ${active?"active":""}" onclick="go('phase',${pid})">
+      <i data-lucide="${ph.icon}" class="ni-ico" style="width:17px;height:17px"></i>
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${pid}. ${esc(ph.short)}</span>
+      ${blocked?`<span class="ni-chip"><span class="chip red" style="padding:1px 6px"><i class="i" data-lucide="alert-triangle"></i></span></span>`
+        : ph.status==="complete"?`<span class="ni-chip"><i data-lucide="check" style="width:14px;height:14px;color:${active?'#fff':'var(--success)'}"></i></span>`:""}
+    </button>`;
+  }).join("");
+
+  return `<div class="nav">
+    <div class="profile" onclick="togglePersonaMenu(event)">
+      ${avatar(p.initials,34,p.g)}
+      <div class="who"><b>${esc(p.name)}</b><span>${esc(p.email)}</span></div>
+      <i data-lucide="chevrons-up-down" style="width:15px;height:15px;color:var(--fg4)"></i>
+    </div>
+    <div class="nav-sep"></div>
+    ${canSeeProgram()?`
+      <div class="nav-group">
+        <button class="nav-item ${STATE.view==="home"?"active":""}" onclick="go('home')">
+          <i data-lucide="layout-dashboard" class="ni-ico" style="width:17px;height:17px"></i> Program home
+        </button>
+      </div>
+      <div class="nav-label" style="margin-top:10px">Phases</div>`:`
+      <div class="nav-label">Your phases</div>`}
+    <div class="nav-group">${phaseItems}</div>
+    ${leadOnly?`
+      <div class="nav-label" style="margin-top:10px">Administration</div>
+      <div class="nav-group">
+        <button class="nav-item ${STATE.view==="people"?"active":""}" onclick="go('people')">
+          <i data-lucide="users" class="ni-ico" style="width:17px;height:17px"></i> People & access</button>
+        <button class="nav-item ${STATE.view==="risk"?"active":""}" onclick="go('risk')">
+          <i data-lucide="shield-alert" class="ni-ico" style="width:17px;height:17px"></i> Risk register</button>
+        <button class="nav-item ${STATE.view==="audit"?"active":""}" onclick="go('audit')">
+          <i data-lucide="scroll-text" class="ni-ico" style="width:17px;height:17px"></i> Audit log</button>
+      </div>`:""}
+    <div class="nav-foot">
+      <div class="upsell">
+        <b><i data-lucide="git-merge" style="width:15px;height:15px;color:var(--accent)"></i> Phase 7 · Multi-state</b>
+        <p>${canSeeProgram()?"Once Phases 0–6 complete, stamp this program to clone state 2 with ~65% less effort.":"Your work here feeds the multi-state template."}</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+function topbarHTML(){
+  let title="", crumb="";
+  if(STATE.view==="home"){title="Program home"; crumb="Curaleaf enterprise onboarding · Phases 0–6";}
+  else if(STATE.view==="phase"){const ph=PHASES[STATE.phase]; title=`Phase ${ph.id} · ${ph.short}`; crumb=`Curaleaf onboarding · ${ph.window}`;}
+  else if(STATE.view==="people"){title="People & access"; crumb="Leads only · phase-scoped grants";}
+  else if(STATE.view==="risk"){title="Risk register"; crumb="Leads only · risks surface inside affected phases";}
+  else if(STATE.view==="audit"){title="Audit log"; crumb="Leads only · SOC 2 evidence";}
+  const p=persona();
+  return `<div class="topbar">
+    <div class="ttl"><h1>${esc(title)}</h1><div class="crumb"><i data-lucide="git-branch" style="width:13px;height:13px"></i>${esc(crumb)}</div></div>
+    <span class="grow"></span>
+    <div class="persona" onclick="togglePersonaMenu(event)">
+      <div class="pmeta"><span class="eyebrow">Viewing as</span><span class="pn">${esc(p.name)}</span><span class="pr">${esc(p.role)} · ${esc(p.scope)}</span></div>
+      ${avatar(p.initials,30,p.g)}
+      <i data-lucide="chevron-down" style="width:15px;height:15px;color:var(--fg4)"></i>
+      ${STATE.personaMenu?personaMenuHTML():""}
+    </div>
+  </div>`;
+}
+
+function personaMenuHTML(){
+  const order=["trellis","curaleaf","sponsor","sarah","marcus","priya"];
+  return `<div class="pmenu" onclick="event.stopPropagation()">
+    <div class="pm-h">Switch persona · prototype</div>
+    ${order.map(k=>{const p=PERSONAS[k];const on=STATE.persona===k;return `
+      <button class="${on?"on":""}" onclick="setPersona('${k}')">
+        ${avatar(p.initials,32,p.g)}
+        <div class="pm-meta"><b>${esc(p.name)}</b><span>${esc(p.role)}</span><span class="scope">${esc(p.scope)}</span></div>
+        ${on?`<i class="ck" data-lucide="check" style="width:16px;height:16px"></i>`:""}
+      </button>`;}).join("")}
+  </div>`;
+}
+
+/* ---------------- VIEWS ---------------- */
+function viewHTML(){
+  if(STATE.view==="home"){ if(!canSeeProgram()) return lockedView("Program home is for Program Leads and the Executive Sponsor","Your access is scoped to the phases you're assigned to. The bird's-eye view stays with the two leads and the sponsor."); return homeHTML(); }
+  if(STATE.view==="people"){ if(!persona().lead) return lockedView("People & access is leads-only","Adding and assigning users is restricted to the two Program Leads — a deliberate SOC 2 control. Phase managers can request an addition instead."); return peopleHTML(); }
+  if(STATE.view==="risk"){ if(!persona().lead) return lockedView("Risk register is leads-only","Risks surface inside the phases they affect. The consolidated register stays with the leads."); return riskHTML(); }
+  if(STATE.view==="audit"){ if(!persona().lead) return lockedView("Audit log is leads-only","Every permission change is logged as SOC 2 evidence and visible only to the Program Leads."); return auditHTML(); }
+  if(STATE.view==="phase"){
+    const r=roleInPhase(STATE.phase);
+    if(!r) return lockedView("You don't have access to this phase","Ask a Program Lead to grant you access. Phase-scoped permissions keep each person's surface area small.");
+    return phaseHTML();
+  }
+  return "";
+}
+
+function lockedView(title,body){
+  return `<div class="locked-view">
+    <div class="lk-ico"><i data-lucide="lock" style="width:26px;height:26px"></i></div>
+    <h2>${esc(title)}</h2><p>${esc(body)}</p>
+    <div style="margin-top:20px"><button class="btn btn-secondary" onclick="go('${canSeeProgram()?'home':'phase'}',${canSeeProgram()?'undefined':visiblePhases()[0]})"><i data-lucide="arrow-left" style="width:15px;height:15px"></i>Back to your workspace</button></div>
+  </div>`;
+}
+
+/* ---- Program Home ---- */
+function homeHTML(){
+  const d=daysToBaseline();
+  const dDisp = d>0?d:0;
+  const done = PHASES.filter(p=>p.status==="complete").length;
+  return `
+  <div class="hero">
+    <div class="ring">${ringSVG(dDisp)}</div>
+    <div class="htxt">
+      <div class="sm-overline">Time to first value</div>
+      <h2>${d>0?`${d} days to the Week-6 baseline report`:`Week-6 baseline report is due`}</h2>
+      <p>Value is demonstrated in the first six weeks or the program stalls. This countdown is the program's organizing pressure — everyone with this view sees it first, every day.</p>
+    </div>
+    <div class="hmeta"><b>${done} of 7 phases complete</b>Target · Jun 15, 2026<br>Beachhead · New Jersey</div>
+  </div>
+
+  <div class="home-grid">
+    <div>
+      <div class="sec-h"><h3>Where are we?</h3><span class="grow"></span><span class="sm-body-sm" style="font-size:12px;color:var(--fg4)">Click a phase to enter its workspace</span></div>
+      <div class="ptl">${PHASES.map(phaseCardHTML).join("")}</div>
+
+      <div class="sec-h" style="margin-top:26px"><h3>Are we on pace?</h3></div>
+      <div class="card pad">
+        <div class="flex ai-c gap12 wrap">
+          ${pacePill("layers","Phases complete",`${done} / 7`)}
+          ${pacePill("alert-triangle","Open blockers",`${BLOCKERS.length}`,"red")}
+          ${pacePill("target","Phase 3 coverage","92.4% / 95%")}
+          ${pacePill("network","Phase 4 volume","67% / 80%")}
+          ${pacePill("calendar-clock","Baseline report",`${dDisp}d`)}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="rail-card">
+        <div class="rc-h"><i data-lucide="alert-triangle" style="width:18px;height:18px;color:var(--danger)"></i><h3>What's blocking us?</h3><span class="cnt chip red">${BLOCKERS.length}</span></div>
+        ${BLOCKERS.map(blockerHTML).join("")}
+      </div>
+      <div class="banner" style="margin-top:16px"><i class="i" data-lucide="info" style="width:16px;height:16px"></i><div>Blockers operationalize the risk table — each flagged item lands here the moment someone raises it, with its escalation owner one click away.</div></div>
+    </div>
+  </div>`;
+}
+
+function pacePill(icon,label,val,tone){
+  return `<div style="flex:1;min-width:150px">
+    <div class="flex ai-c gap8" style="color:var(--fg4);font-size:12px;font-weight:500"><i data-lucide="${icon}" style="width:14px;height:14px"></i>${esc(label)}</div>
+    <div class="mono" style="font-size:20px;font-weight:700;color:${tone==='red'?'var(--danger)':'var(--fg1)'};margin-top:6px;letter-spacing:-.02em">${esc(val)}</div>
+  </div>`;
+}
+
+function phaseCardHTML(ph){
+  const sm=STATUS_META[ph.status];
+  const prog=phaseProgress(ph.id);
+  const blocked=BLOCKERS.some(b=>b.phase===ph.id);
+  const locked = ph.dep && !depMet(ph);
+  return `<div class="pcard" onclick="go('phase',${ph.id})">
+    <div class="pc-top">
+      <span class="pc-no">PHASE ${ph.id}</span>
+      <span class="grow" style="flex:1"></span>
+      <span class="chip ${sm.chip}">${esc(sm.label)}</span>
+    </div>
+    <h4>${esc(ph.name)}</h4>
+    <div class="win">${esc(ph.window)} · ${avatarInline(ph.mgr.initials,ph.mgr.g)} ${esc(ph.mgr.name)}</div>
+    <div class="pc-prog">
+      <div class="prog ${sm.prog}"><span style="width:${prog}%"></span></div>
+      <div class="pc-foot"><span class="pct">${prog}% of exit criteria weight</span>
+      ${blocked?`<span class="chip red"><i class="i" data-lucide="alert-triangle"></i>Blocked</span>`:""}</div>
+    </div>
+    ${locked?`<div class="lockline"><i data-lucide="lock" style="width:12px;height:12px"></i>Exit gated on Phase ${ph.dep.multi?ph.dep.multi.join(" & "):ph.dep.phase}</div>`:""}
+  </div>`;
+}
+
+function blockerHTML(b){
+  return `<div class="blk" onclick="go('phase',${b.phase})">
+    <div class="bk-top"><span class="chip ${b.sev}">Phase ${b.phase}</span><span class="bk-age">${esc(b.age)} old</span></div>
+    <p>${esc(b.text)}</p>
+    <div class="own"><i data-lucide="shield" style="width:13px;height:13px"></i>Escalation · <b style="color:var(--fg2)">${esc(b.owner)}</b></div>
+  </div>`;
+}
+
+/* ---- Phase workspace ---- */
+function phaseHTML(){
+  const ph=PHASES[STATE.phase];
+  const r=roleInPhase(STATE.phase);
+  const sm=STATUS_META[ph.status];
+  const tabs=[
+    {id:"overview",label:"Overview",icon:"layout-list"},
+    {id:"objects",label:"Data objects",icon:"database",c:ph.objects.length},
+    {id:"tasks",label:"Tasks",icon:"check-square",c:ph.tasks.length},
+    {id:"exit",label:"Exit criteria",icon:"flag",c:ph.criteria.length},
+    {id:"activity",label:"Activity",icon:"messages-square"},
+  ];
+  if(ph.module==="exceptions") tabs.splice(1,0,{id:"module",label:"Exception queue",icon:"git-pull-request-arrow",c:EXCEPTIONS.length});
+  if(ph.module==="counterparty") tabs.splice(1,0,{id:"module",label:"Annotation queue",icon:"list-checks",c:COUNTERPARTIES.length});
+  if(ph.module==="discrepancy") tabs.splice(1,0,{id:"module",label:"Report builder",icon:"file-bar-chart-2"});
+
+  if(!tabs.some(t=>t.id===STATE.tab)) STATE.tab="overview";
+
+  let body="";
+  if(STATE.tab==="overview") body=ovHTML(ph,r);
+  else if(STATE.tab==="objects") body=objectsHTML(ph,r);
+  else if(STATE.tab==="tasks") body=tasksHTML(ph,r);
+  else if(STATE.tab==="exit") body=exitHTML(ph,r);
+  else if(STATE.tab==="activity") body=activityHTML(ph,r);
+  else if(STATE.tab==="module"){
+    if(ph.module==="exceptions") body=exceptionsHTML(ph,r);
+    else if(ph.module==="counterparty") body=counterpartyHTML(ph,r);
+    else if(ph.module==="discrepancy") body=discrepancyHTML(ph,r);
+  }
+
+  const roleChip = persona().lead?`<span class="rolechip lead"><i data-lucide="crown" style="width:12px;height:12px"></i>${esc(r)}</span>`
+    : `<span class="rolechip ${isManager(STATE.phase)?'mgr':''}">${esc(r)}</span>`;
+
+  return `
+    <div class="flex ai-c gap10 wrap" style="margin-bottom:16px">
+      <span class="chip ${sm.chip}" style="font-size:12.5px;padding:5px 11px">${esc(sm.label)}</span>
+      <span class="sm-body-sm" style="color:var(--fg4);font-size:12.5px">Your role here ·</span> ${roleChip}
+      ${persona().readonly?`<span class="rolechip"><i data-lucide="eye" style="width:12px;height:12px"></i>Read-only</span>`:""}
+      <span class="grow" style="flex:1"></span>
+      <span class="sm-body-sm" style="color:var(--fg4);font-size:12.5px">${phaseProgress(ph.id)}% complete</span>
+    </div>
+    <div class="tabs">
+      ${tabs.map(t=>`<button class="tab ${STATE.tab===t.id?"on":""}" onclick="setTab('${t.id}')">
+        <i data-lucide="${t.icon}" style="width:15px;height:15px"></i>${esc(t.label)}${t.c!=null?`<span class="c">${t.c}</span>`:""}</button>`).join("")}
+    </div>
+    ${body}`;
+}
+
+function ovHTML(ph,r){
+  const upstream = ph.feeds.map(f=>PHASES[f]);
+  const downstream = PHASES.filter(p=>p.feeds.includes(ph.id));
+  const sarahScoped = !persona().lead && !persona().sponsor;
+  return `
+  <div class="goal"><div class="sm-overline">Phase goal · from the playbook</div><p>${esc(ph.goal)}</p></div>
+  <div class="ov-grid">
+    <div>
+      <div class="metarow">
+        <div class="meta"><div class="k">Target window</div><div class="v"><i data-lucide="calendar" style="width:15px;height:15px;color:var(--fg4)"></i>${esc(ph.window)}</div></div>
+        <div class="meta"><div class="k">Status</div><div class="v">${statusChip(ph.status)}</div></div>
+        <div class="meta"><div class="k">Phase manager</div><div class="v">${avatarInline(ph.mgr.initials,ph.mgr.g)} ${esc(ph.mgr.name)}</div></div>
+        <div class="meta"><div class="k">Beachhead</div><div class="v"><i data-lucide="map-pin" style="width:15px;height:15px;color:var(--fg4)"></i>${ph.state==="multi"?"Multi-state · NJ first":esc(ph.state)}</div></div>
+      </div>
+
+      <div class="sec-h"><h3>Dependency map</h3></div>
+      <div class="sm-body-sm" style="color:var(--fg4);margin-bottom:9px;font-size:12.5px">Feeds into this phase</div>
+      ${upstream.length?upstream.map(u=>depRowHTML(u,sarahScoped)).join(""):`<div class="subtle" style="margin-bottom:14px">Nothing upstream — this phase can begin immediately.</div>`}
+      <div class="sm-body-sm" style="color:var(--fg4);margin:14px 0 9px;font-size:12.5px">Depends on this phase</div>
+      ${downstream.length?downstream.map(u=>depRowHTML(u,sarahScoped)).join(""):`<div class="subtle">Terminal phase — ${esc(ph.dependsLabel)}</div>`}
+    </div>
+    <div>
+      <div class="card pad" style="margin-bottom:14px">
+        <div class="sm-overline" style="margin-bottom:10px">Exit gate</div>
+        ${ph.dep?gateLineHTML(ph):`<div class="subtle">No upstream exit dependency.</div>`}
+        <div class="divider"></div>
+        <div class="sm-body-sm" style="font-size:12.5px;color:var(--fg3);line-height:1.5">${esc(ph.dependsLabel)}</div>
+      </div>
+      ${ph.submilestones?`<div class="card pad">
+        <div class="sm-overline" style="margin-bottom:12px">Internal sequencing</div>
+        <div class="subms">${ph.submilestones.map((s,i)=>`
+          <div class="subm ${s.state}"><div class="sm-no">${s.state==="done"?'<i data-lucide="check" style="width:13px;height:13px"></i>':i+1}</div>
+          <div class="sm-b"><b>${esc(s.t)}</b><span>${esc(s.d)}</span></div></div>`).join("")}</div>
+      </div>`:""}
+    </div>
+  </div>`;
+}
+
+function depRowHTML(u,scoped){
+  const sm=STATUS_META[u.status];
+  if(scoped){
+    // redacted reference chip — status only, no contents
+    return `<div class="redacted" style="margin-bottom:8px"><i class="i" data-lucide="lock" style="width:14px;height:14px"></i>
+      Depends on · Phase ${u.id} · ${esc(u.short)} · <span class="chip ${sm.chip}" style="margin-left:2px">${esc(sm.label)}</span></div>`;
+  }
+  return `<div class="dep">
+    <span style="width:30px;height:30px;border-radius:8px;background:var(--gray-50);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--fg3)"><i data-lucide="${u.icon}" style="width:16px;height:16px"></i></span>
+    <div class="dp-b"><b>Phase ${u.id} · ${esc(u.short)}</b><span>${esc(u.window)}</span></div>
+    ${statusChip(u.status)}
+    <button class="btn btn-ghost btn-sm" onclick="go('phase',${u.id})">Open<i data-lucide="arrow-up-right" style="width:14px;height:14px"></i></button>
+  </div>`;
+}
+
+function gateLineHTML(ph){
+  const met=depMet(ph);
+  const lbl = ph.dep.multi?`Phases ${ph.dep.multi.join(" & ")} complete`:ph.dep.label;
+  return `<div class="flex ai-c gap8">
+    <span class="keypill ${met?'done':'wait'}"><i data-lucide="${met?'check':'lock'}" style="width:13px;height:13px"></i>${esc(lbl)}</span>
+  </div>
+  <div class="sm-body-sm" style="font-size:12px;color:var(--fg4);margin-top:8px">${met?"Upstream satisfied — this phase can be exited once its own criteria are countersigned.":"This phase can be worked in now, but cannot exit until the dependency clears."}</div>`;
+}
+
+/* ---- Data objects ---- */
+function objectsHTML(ph,r){
+  const editable = canEdit(ph.id) && !persona().readonly;
+  return `
+  <div class="banner"><i class="i" data-lucide="shield-check" style="width:16px;height:16px"></i><div>Redundancy rules are enforced in software: <b>Derived</b> objects render read-only with a live sync indicator — nobody can type into a Metrc-sourced field. <b>Confirmed</b> opens a confirm/annotate control. <b>Collected</b> opens an intake form and shows why it can't be derived.</div></div>
+  <table class="tbl">
+    <thead><tr><th>Object</th><th>System of record</th><th>Method</th><th>Status</th><th>Owner</th><th></th></tr></thead>
+    <tbody>
+    ${ph.objects.map(o=>`<tr class="clk" onclick="toast('${o.method==='derived'?'Read-only · synced from '+esc(o.sor):o.method==='confirmed'?'Opening confirm / annotate control':'Opening intake form'}')">
+      <td><div class="obj-name">${esc(o.name)}</div>${o.method==='collected'&&o.why?`<div class="obj-why"><i data-lucide="info" style="width:12px;height:12px"></i>${esc(o.why)}</div>`:""}</td>
+      <td><span class="mono" style="font-size:12px;color:var(--fg3)">${esc(o.sor)}</span></td>
+      <td><span class="method ${o.method}">${o.method==='derived'?'<i data-lucide="lock" style="width:11px;height:11px"></i>':''}${cap(o.method)}</span></td>
+      <td>${o.method==='derived'?`<span class="sync"><span class="dot"></span>Syncing · live</span>`:objStatus(o.status)}</td>
+      <td><span style="font-size:12.5px;color:var(--fg2)">${esc(o.owner)}</span></td>
+      <td style="text-align:right">${o.method==='derived'?`<i data-lucide="lock" class="lockicon" style="width:15px;height:15px"></i>`
+        :o.method==='confirmed'?`<button class="btn btn-secondary btn-sm" ${editable?'':'disabled'} onclick="event.stopPropagation();toast('Confirm / annotate')">Confirm</button>`
+        :`<button class="btn btn-secondary btn-sm" ${editable?'':'disabled'} onclick="event.stopPropagation();toast('Open form / upload')"><i data-lucide="upload" style="width:13px;height:13px"></i></button>`}</td>
+    </tr>`).join("")}
+    </tbody>
+  </table>`;
+}
+function objStatus(s){
+  const m={Pending:"gray","In Progress":"blue",Delivered:"amber",Validated:"green"};
+  return `<span class="chip ${m[s]||'gray'}">${esc(s)}</span>`;
+}
+
+/* ---- Tasks (kanban) ---- */
+function tasksHTML(ph,r){
+  const cols=[{id:"todo",l:"To do",ic:"circle"},{id:"doing",l:"In progress",ic:"loader"},{id:"done",l:"Done",ic:"check-circle-2"}];
+  if(!ph.tasks.length) return `<div class="muted-card"><i data-lucide="inbox" style="width:24px;height:24px"></i><div style="margin-top:8px">No tasks yet. ${isManager(ph.id)?"As phase manager you can create the first one.":"The phase manager hasn't created tasks yet."}</div></div>`;
+  return `
+  <div class="qbar"><div class="grow"></div>
+    ${isManager(ph.id)&&!persona().readonly?`<button class="btn btn-primary btn-sm" onclick="toast('New task — assignable to anyone with Phase ${ph.id} access')"><i data-lucide="plus" style="width:14px;height:14px"></i>New task</button>`:""}
+  </div>
+  <div class="kan" style="grid-template-columns:repeat(3,1fr)">
+    ${cols.map(c=>{
+      const items=ph.tasks.filter(t=>t.col===c.id);
+      return `<div class="kcol"><div class="kc-h"><i data-lucide="${c.ic}" style="width:15px;height:15px;color:var(--fg4)"></i><b>${c.l}</b><span class="c">${items.length}</span></div>
+      ${items.map(t=>`<div class="kcard" onclick="toast('${esc(t.t)}')">
+        ${t.ref?`<span class="ref"><i data-lucide="link" style="width:11px;height:11px"></i>${esc(t.ref)}</span>`:""}
+        <p>${esc(t.t)}</p>
+        <div class="kf">${avatarInline(initials(t.who),avG(t.who))}<span class="grow" style="flex:1"></span>
+        ${t.blocker?`<span class="chip red" style="padding:2px 7px"><i class="i" data-lucide="alert-triangle"></i>Blocked</span>`:""}
+        <span class="due"><i class="i" data-lucide="calendar" style="width:12px;height:12px"></i>${esc(t.due)}</span></div>
+      </div>`).join("")||`<div style="font-size:12px;color:var(--fg4);text-align:center;padding:14px 0">—</div>`}
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+/* ---- Exit criteria ---- */
+function exitHTML(ph,r){
+  const depOk = !ph.dep || depMet(ph);
+  return `
+  <div class="exit-intro"><i class="i" data-lucide="flag" style="width:20px;height:20px"></i>
+    <div>The gate. Each criterion needs a <b>two-key sign-off</b> — the phase manager attests, then <b>both Program Leads countersign</b>. Quantitative criteria wire to live data; the checkbox only unlocks when the threshold is met.</div></div>
+  ${!depOk?`<div class="dep-warn" style="margin-bottom:16px"><i class="i" data-lucide="lock" style="width:16px;height:16px"></i>
+    <div><b>This phase cannot exit yet.</b> Upstream dependency unmet: <b>Phase ${ph.dep.multi?ph.dep.multi.join(" & "):ph.dep.phase}</b> must be complete. Criteria can be attested, but completion stays gated until ${ph.dep.multi?"those phases":"that phase"} clears — owned by the relevant phase managers.</div></div>`:""}
+  ${ph.criteria.map((_,i)=>critHTML(ph,i,depOk)).join("")}`;
+}
+
+function critHTML(ph,i,depOk){
+  const c=getCrit(ph.id,i);
+  const live=c.live;
+  const thresholdMet = live ? (live.cur>=live.tgt || c.met) : c.met;
+  const canCheck = thresholdMet && depOk;
+  const fullySigned = c.attested && c.leadA && c.leadB;
+  const meAttest = isManager(ph.id) && !persona().readonly;
+  const meLead = persona().lead;
+  return `<div class="crit ${fullySigned?'met':''} ${!depOk?'locked':''}">
+    <div class="ct-top">
+      <div class="cbox ${c.attested?'on':''} ${!canCheck&&!c.attested?'dis':''}" onclick="${meAttest&&canCheck?`attest(${ph.id},${i})`:`toast('${!canCheck?(live?'Threshold not met — '+live.cur+live.unit+' of '+live.tgt+live.unit:'Not yet ready'):'Only the phase manager can attest (first key)'}')`}">
+        ${c.attested?'<i data-lucide="check" style="width:14px;height:14px"></i>':''}</div>
+      <div class="ct-b">
+        <h4>${esc(c.t)}</h4>
+        <div class="ev"><i data-lucide="${c.ev.type==='obj'?'database':'paperclip'}" style="width:13px;height:13px"></i>Evidence · <a onclick="toast('Open evidence: ${esc(c.ev.label)}')">${esc(c.ev.label)}</a></div>
+        ${live?`<div class="live-metric">
+          <span class="mono lm-num">${live.cur}${live.unit}</span>
+          <div class="lm-bar"><span class="${live.cur>=live.tgt?'ok':''}" style="width:${Math.min(100,(live.cur/live.target)*100)}%"></span></div>
+          <span class="lm-tgt">target ${live.tgt}${live.unit}</span>
+        </div>`:""}
+        <div class="signoff">
+          <span class="keypill ${c.attested?'done':'wait'}"><i data-lucide="${c.attested?'check':'circle'}" style="width:13px;height:13px"></i>Manager attest</span>
+          <span class="keypill ${c.leadA?'done':'wait'}"><i data-lucide="${c.leadA?'check':'circle'}" style="width:13px;height:13px"></i>Trellis lead</span>
+          <span class="keypill ${c.leadB?'done':'wait'}"><i data-lucide="${c.leadB?'check':'circle'}" style="width:13px;height:13px"></i>Curaleaf lead</span>
+          <span class="grow" style="flex:1"></span>
+          ${c.attested&&!fullySigned&&meLead?`<button class="btn btn-accent btn-sm" onclick="countersign(${ph.id},${i})"><i data-lucide="pen-line" style="width:13px;height:13px"></i>Countersign</button>`:""}
+          ${c.attested&&!fullySigned&&!meLead?`<span class="chip amber"><i class="i" data-lucide="clock"></i>Awaiting countersign</span>`:""}
+          ${fullySigned?`<span class="chip green"><i class="i" data-lucide="check-circle-2"></i>Countersigned</span>`:""}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---- Activity ---- */
+function activityHTML(ph,r){
+  const me=persona();
+  return `
+  ${!me.readonly?`<div class="composer">
+    ${avatarInline(me.initials,me.g,30)}
+    <div class="field"><input placeholder="Add a comment, @mention a teammate, or pin a decision…" onkeydown="if(event.key==='Enter'){toast('Comment posted to Phase ${ph.id}');this.value=''}"></div>
+    <button class="btn btn-primary" onclick="toast('Comment posted to Phase ${ph.id}')">Post</button>
+  </div>`:`<div class="banner"><i class="i" data-lucide="eye" style="width:16px;height:16px"></i><div>You're viewing this phase read-only. Discussion is scoped to the phase — nothing here leaks to other phases.</div></div>`}
+  <div class="feed">
+    ${ph.activity.map(a=>`<div class="fitem">
+      <div class="fav">${avatarInline(initials(a.who),a.g,30)}</div>
+      <div class="fb">
+        ${a.pin?`<div class="pin"><i data-lucide="pin" style="width:13px;height:13px"></i>Pinned decision</div>`:""}
+        <div class="fh"><b>${esc(a.who)}</b> ${a.signoff?'<i data-lucide="check-check" style="width:14px;height:14px;color:var(--success);vertical-align:-2px"></i> ':''}${a.text}</div>
+        ${a.quote?`<div class="quote">${esc(a.quote)}</div>`:""}
+        ${a.blocker?`<div class="mt8"><span class="chip red"><i class="i" data-lucide="alert-triangle"></i>Blocker raised</span></div>`:""}
+        <div class="ft">${esc(a.time)}</div>
+      </div>
+    </div>`).join("")}
+  </div>`;
+}
+
+/* ---- Phase 3: Exception Review Queue ---- */
+const EXCEPTIONS = [
+  {id:1, state:"NJ", variant:"Blue Dream 3.5g Flower [v2]", meta:"METRC-ITM-44213 · pkg 1A4F…9920", sku:"Blue Dream · Flower · 3.5g", skuMeta:"SKU CUR-FL-BD-035", conf:0.62},
+  {id:2, state:"NJ", variant:"BlueDream Eighth Jar", meta:"METRC-ITM-51188 · pkg 1A4F…2210", sku:"Blue Dream · Flower · 3.5g", skuMeta:"SKU CUR-FL-BD-035", conf:0.58},
+  {id:3, state:"NJ", variant:"GG#4 Live Resin 1g", meta:"METRC-ITM-66301 · pkg 1A4F…7740", sku:"Gorilla Glue 4 · Live Resin · 1g", skuMeta:"SKU CUR-CO-GG4-010", conf:0.69},
+  {id:4, state:"FL", variant:"Sunset Sherbet PR 0.5g", meta:"METRC-ITM-71820 · pkg 1A4F…1180", sku:"Sunset Sherbet · Pre-roll · 0.5g", skuMeta:"SKU CUR-PR-SS-005", conf:0.64},
+  {id:5, state:"NJ", variant:"Wedding Cake Vape 510 0.5g", meta:"METRC-ITM-80042 · pkg 1A4F…5521", sku:"Wedding Cake · Vape 510 · 0.5g", skuMeta:"SKU CUR-VP-WC-005", conf:0.55},
+  {id:6, state:"FL", variant:"RSO Syringe 1g (full spec)", meta:"METRC-ITM-90113 · pkg 1A4F…3390", sku:"RSO · Syringe · 1g", skuMeta:"SKU CUR-RS-FS-010", conf:0.66},
+];
+function exceptionsHTML(ph,r){
+  const editable=canEdit(ph.id)&&!persona().readonly;
+  const stateScope = persona().state;
+  let list = EXCEPTIONS.filter(e=>!STATE.cleared["e"+e.id]);
+  if(stateScope) list=list.filter(e=>e.state===stateScope);
+  if(STATE.qFilter==="low") list=list.filter(e=>e.conf<0.6);
+  const clearedCount = Object.keys(STATE.cleared).filter(k=>k.startsWith("e")).length;
+  return `
+  <div class="banner"><i class="i" data-lucide="git-pull-request-arrow" style="width:16px;height:16px"></i><div>This is the structured UI the playbook insists on — <b>not a spreadsheet exchange.</b> Low-confidence matches from the entity-resolution pipeline land here. ${stateScope?`Filtered to your <b>${stateScope}</b> scope.`:"Filterable by state so each ops lead sees only their slice."}</div></div>
+
+  <div class="coverage">
+    <div class="cv-top"><b>Volume-weighted coverage</b>
+      ${isManager(ph.id)&&!persona().readonly?`<button class="btn ${STATE.session?'btn-accent':'btn-secondary'} btn-sm" onclick="toggleSession()"><i data-lucide="${STATE.session?'square':'play'}" style="width:13px;height:13px"></i>${STATE.session?'End working session':'Start working session'}</button>`:""}
+    </div>
+    <div class="flex ai-c gap12" style="margin-bottom:10px"><span class="cv-num">92.4<small>%</small></span>
+      <span class="sm-body-sm" style="color:var(--fg4);font-size:12.5px">climbing toward the 95% exit gate</span></div>
+    <div class="cv-track"><span style="width:92.4%"></span><span class="gate" style="left:95%"></span></div>
+    <div class="cv-gatelbl">95% gate</div>
+    ${STATE.session?`<div class="banner" style="margin:14px 0 0"><i class="i" data-lucide="timer" style="width:16px;height:16px"></i><div><b>Working session active</b> · NJ exceptions, confidence &lt; 0.7 pre-loaded. Items cleared this session: <b>${clearedCount}</b> — the early-warning indicator for state-ops disengagement.</div></div>`:""}
+  </div>
+
+  <div class="qbar">
+    <div class="seg"><button class="${STATE.qFilter==='all'?'on':''}" onclick="setFilter('all')">All open</button><button class="${STATE.qFilter==='low'?'on':''}" onclick="setFilter('low')">Confidence &lt; 0.6</button></div>
+    <div class="grow"></div>
+    <span class="sm-body-sm" style="color:var(--fg4);font-size:12.5px">${list.length} item${list.length===1?'':'s'} in queue${clearedCount?` · ${clearedCount} cleared`:''}</span>
+  </div>
+
+  ${list.length?list.map(e=>`<div class="qcard" id="e${e.id}">
+    <div class="qc-grid">
+      <div class="qside"><div class="ql">Metrc item variant · ${e.state}</div><div class="qv">${esc(e.variant)}</div><div class="qmono">${esc(e.meta)}</div></div>
+      <div class="qarrow"><i data-lucide="arrow-right" style="width:20px;height:20px"></i></div>
+      <div class="qside prop"><div class="ql">Proposed canonical SKU</div><div class="qv">${esc(e.sku)}</div><div class="qmono">${esc(e.skuMeta)}</div></div>
+    </div>
+    <div class="qc-foot">
+      <div class="confidence"><span class="sm-body-sm" style="font-size:12px;color:var(--fg4)">Match confidence</span>
+        <div class="cf-bar"><span style="width:${e.conf*100}%;background:${e.conf>=0.65?'var(--success)':e.conf>=0.6?'var(--warning)':'var(--danger)'}"></span></div>
+        <span class="cf-num" style="color:${e.conf>=0.65?'var(--success)':e.conf>=0.6?'var(--warning)':'var(--danger)'}">${e.conf.toFixed(2)}</span></div>
+      <div class="acts">
+        <button class="btn btn-ghost btn-sm" ${editable?'':'disabled'} onclick="clearException(${e.id},'split')"><i data-lucide="split" style="width:13px;height:13px"></i>Split</button>
+        <button class="btn btn-secondary btn-sm" ${editable?'':'disabled'} onclick="clearException(${e.id},'reject')"><i data-lucide="x" style="width:13px;height:13px"></i>Reject</button>
+        <button class="btn btn-accent btn-sm" ${editable?'':'disabled'} onclick="clearException(${e.id},'accept')"><i data-lucide="check" style="width:13px;height:13px"></i>Accept</button>
+      </div>
+    </div>
+  </div>`).join(""):`<div class="muted-card"><i data-lucide="check-circle-2" style="width:24px;height:24px;color:var(--success)"></i><div style="margin-top:8px">Queue clear for this filter. ${clearedCount?`${clearedCount} item${clearedCount===1?'':'s'} cleared this session.`:''}</div></div>`}`;
+}
+
+/* ---- Phase 4: Counterparty Annotation Queue ---- */
+const COUNTERPARTIES = [
+  {rank:1, name:"Garden State Dispensary", lic:"NJ-RE-0042", vol:"18.4%", cum:18.4, done:true, terms:"Net 30", credit:"$250k"},
+  {rank:2, name:"Ascend Wellness NJ", lic:"NJ-RE-0118", vol:"14.1%", cum:32.5, done:true, terms:"Net 30", credit:"$200k"},
+  {rank:3, name:"Verano River Edge", lic:"NJ-RE-0231", vol:"11.7%", cum:44.2, done:true, terms:"Net 45", credit:"$180k"},
+  {rank:4, name:"TerrAscend Maplewood", lic:"NJ-RE-0309", vol:"9.3%", cum:53.5, done:true, terms:"Net 30", credit:"$150k"},
+  {rank:5, name:"Cookies Harrison", lic:"NJ-RE-0377", vol:"7.6%", cum:61.1, done:true, terms:"Net 30", credit:"$120k"},
+  {rank:6, name:"The Botanist Egg Harbor", lic:"NJ-RE-0402", vol:"5.9%", cum:67.0, done:false, terms:"", credit:""},
+  {rank:7, name:"Zen Leaf Elizabeth", lic:"NJ-RE-0455", vol:"5.1%", cum:72.1, done:false, terms:"", credit:""},
+  {rank:8, name:"Apothecarium Phillipsburg", lic:"NJ-RE-0511", vol:"4.4%", cum:76.5, done:false, terms:"", credit:""},
+  {rank:9, name:"Curaleaf Bordentown (internal)", lic:"NJ-RE-0588", vol:"3.8%", cum:80.3, done:false, terms:"", credit:""},
+];
+function counterpartyHTML(ph,r){
+  const editable=canEdit(ph.id)&&!persona().readonly;
+  return `
+  <div class="banner"><i class="i" data-lucide="list-checks" style="width:16px;height:16px"></i><div>Volume-ranked and pre-sorted so the <b>top 80% of volume</b> surfaces first. Annotate only the commercial deltas — contacts, payment terms, credit limits. Everything else is derived from Metrc transfers and stays read-only.</div></div>
+
+  <div class="coverage">
+    <div class="cv-top"><b>Confirmed counterparty volume</b><span class="sm-body-sm" style="color:var(--fg4);font-size:12.5px">5 of 9 in top-80% confirmed</span></div>
+    <div class="flex ai-c gap12" style="margin-bottom:10px"><span class="cv-num">67<small>%</small></span>
+      <span class="sm-body-sm" style="color:var(--fg4);font-size:12.5px">of volume confirmed · 80% exit gate</span></div>
+    <div class="cv-track"><span style="width:67%"></span><span class="gate" style="left:80%"></span></div>
+    <div class="cv-gatelbl">80% gate</div>
+  </div>
+
+  ${COUNTERPARTIES.map(c=>`<div class="cpt">
+    <div class="cp-top">
+      <span class="rank">${c.rank}</span>
+      <div class="cp-name"><b>${esc(c.name)}</b><span class="mono">${esc(c.lic)}</span></div>
+      <div class="cp-vol"><div class="vn">${esc(c.vol)}</div><div class="vl">cum ${c.cum}%</div></div>
+      ${c.done?`<span class="chip green" style="margin-left:12px"><i class="i" data-lucide="check"></i>Confirmed</span>`:`<span class="chip amber" style="margin-left:12px"><i class="i" data-lucide="clock"></i>Pending</span>`}
+    </div>
+    <div class="cp-fields">
+      <div><span class="flabel">Primary contact</span><div class="field"><i data-lucide="user" style="width:14px;height:14px;color:var(--fg4)"></i><input ${editable&&!c.done?'':'disabled'} placeholder="${c.done?'On file':'Add contact'}" value="${c.done?'AP team':''}"></div></div>
+      <div><span class="flabel">Payment terms</span><div class="field"><i data-lucide="calendar-clock" style="width:14px;height:14px;color:var(--fg4)"></i><input ${editable&&!c.done?'':'disabled'} placeholder="Net __" value="${esc(c.terms)}"></div></div>
+      <div><span class="flabel">Credit limit</span><div class="field"><i data-lucide="dollar-sign" style="width:14px;height:14px;color:var(--fg4)"></i><input ${editable&&!c.done?'':'disabled'} placeholder="$ —" value="${esc(c.credit)}"></div></div>
+    </div>
+    ${!c.done&&editable?`<div class="mt8" style="display:flex;justify-content:flex-end"><button class="btn btn-accent btn-sm" onclick="toast('Confirmed ${esc(c.name)} — coverage recomputed')"><i data-lucide="check" style="width:13px;height:13px"></i>Confirm terms</button></div>`:""}
+  </div>`).join("")}`;
+}
+
+/* ---- Phase 5: Discrepancy Report Builder ---- */
+const VARIANCES=[
+  {fac:"Bellmawr Cultivation", sku:"CUR-FL-BD-035", metrc:"1,240 u", erp:"1,212 u", delta:"−28 u", aging:"4d", tone:"red"},
+  {fac:"Bellmawr Cultivation", sku:"CUR-CO-GG4-010", metrc:"880 u", erp:"880 u", delta:"0", aging:"—", tone:"green"},
+  {fac:"Bordentown Mfg", sku:"CUR-VP-WC-005", metrc:"3,410 u", erp:"3,366 u", delta:"−44 u", aging:"9d", tone:"red"},
+  {fac:"Bordentown Mfg", sku:"CUR-PR-SS-005", metrc:"2,100 u", erp:"2,118 u", delta:"+18 u", aging:"2d", tone:"amber"},
+  {fac:"Edgewater Park Retail", sku:"CUR-RS-FS-010", metrc:"540 u", erp:"540 u", delta:"0", aging:"—", tone:"green"},
+];
+function discrepancyHTML(ph,r){
+  const editable=canEdit(ph.id)&&!persona().readonly;
+  const canShare=STATE.prebrief;
+  return `
+  <div class="banner"><i class="i" data-lucide="file-bar-chart-2" style="width:16px;height:16px"></i><div>The Week-6 baseline deliverable — Metrc vs ERP variance by facility and SKU, with aging. Designed to be forwarded. The risk table warns it surfaces uncomfortable variances, so <b>the share button stays locked until the sponsor pre-brief is done.</b></div></div>
+
+  <div class="ov-grid">
+    <div>
+      <div class="sec-h"><h3>Variance by facility · SKU</h3><span class="grow"></span><span class="chip amber"><i class="i" data-lucide="alert-triangle"></i>2 aging &gt; 7d</span></div>
+      <table class="tbl var-tbl">
+        <thead><tr><th>Facility</th><th>SKU</th><th>Metrc</th><th>ERP</th><th>Δ</th><th>Aging</th></tr></thead>
+        <tbody>${VARIANCES.map(v=>`<tr>
+          <td><span class="fac">${esc(v.fac)}</span></td>
+          <td><span class="mono" style="font-size:12px">${esc(v.sku)}</span></td>
+          <td><span class="mono" style="font-size:12px">${esc(v.metrc)}</span></td>
+          <td><span class="mono" style="font-size:12px">${esc(v.erp)}</span></td>
+          <td><span class="chip ${v.tone}">${esc(v.delta)}</span></td>
+          <td><span class="aging" style="color:${v.tone==='red'?'var(--danger)':'var(--fg4)'}">${esc(v.aging)}</span></td>
+        </tr>`).join("")}</tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card pad" style="margin-bottom:14px">
+        <div class="sm-overline" style="margin-bottom:12px">Pre-brief checklist</div>
+        <div class="dr-steps">
+          <div class="dstep done"><div class="dnum"><i data-lucide="check" style="width:13px;height:13px"></i></div><div class="ds-b"><b>Reconciliation run completed</b><p>NJ facilities, current period</p></div></div>
+          <div class="dstep done"><div class="dnum"><i data-lucide="check" style="width:13px;height:13px"></i></div><div class="ds-b"><b>Variances triaged & aged</b><p>2 items flagged over 7 days</p></div></div>
+          <div class="dstep ${STATE.prebrief?'done':''}"><div class="dnum">${STATE.prebrief?'<i data-lucide="check" style="width:13px;height:13px"></i>':'3'}</div>
+            <div class="ds-b"><b>Sponsor pre-briefed on variance</b><p>${STATE.prebrief?'Confirmed — no surprises in the exec channel':'Required before share unlocks'}</p>
+            ${!STATE.prebrief&&editable?`<button class="btn btn-secondary btn-sm mt8" onclick="setPrebrief()"><i data-lucide="user-check" style="width:13px;height:13px"></i>Mark sponsor pre-briefed</button>`:""}</div></div>
+        </div>
+      </div>
+      <div class="card pad">
+        <div class="sm-overline" style="margin-bottom:10px">Share</div>
+        ${canShare?`<div class="sm-body-sm" style="color:var(--success);font-size:12.5px;margin-bottom:12px"><i data-lucide="unlock" style="width:14px;height:14px;vertical-align:-2px"></i> Pre-brief complete — ready to forward.</div>`
+          :`<div class="locktag" style="margin-bottom:12px"><i data-lucide="lock" style="width:13px;height:13px"></i>Locked until pre-brief</div>`}
+        <div class="flex gap8">
+          <button class="btn btn-primary btn-sm" ${canShare?'':'disabled'} onclick="toast('Exec-ready report shared')"><i data-lucide="send" style="width:13px;height:13px"></i>Share report</button>
+          <button class="btn btn-secondary btn-sm" onclick="toast('Exported PDF')"><i data-lucide="download" style="width:13px;height:13px"></i>Export</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---- People & access ---- */
+function peopleHTML(){
+  return `
+  <div class="flex ai-c gap10" style="margin-bottom:18px">
+    <div class="banner mb0" style="flex:1"><i class="i" data-lucide="shield" style="width:16px;height:16px"></i><div><b>Adding users is leads-only.</b> Phase managers can request an addition (one-click ping to both leads) but can't grant access themselves. Every change is audit-logged as SOC 2 evidence.</div></div>
+    <button class="btn btn-primary" onclick="toast('Add user — leads only')"><i data-lucide="user-plus" style="width:15px;height:15px"></i>Add user</button>
+  </div>
+  ${PEOPLE.map(pp=>`<div class="ppl-row">
+    ${avatarInline(initials(pp.name),pp.g,38)}
+    <div class="pp-b"><b>${esc(pp.name)}</b><span>${esc(pp.email)}${pp.state?` · ${pp.state} scope`:''}</span></div>
+    <div class="pp-roles">${pp.roles.map(rl=>`<span class="rolechip ${rl.lead?'lead':rl.mgr?'mgr':''}">${rl.lead?'<i data-lucide="crown" style="width:12px;height:12px"></i>':''}${rl.p==='all'?'Program':'P'+rl.p} · ${esc(rl.r)}</span>`).join("")}</div>
+  </div>`).join("")}
+  <div class="banner mt16"><i class="i" data-lucide="git-pull-request" style="width:16px;height:16px"></i><div>One person can hold different roles in different phases — Marcus is Phase Manager in 0 & 3 but Contributor in 2, 5, 6. State ops leads are further scoped by state inside the queues.</div></div>`;
+}
+
+/* ---- Risk register ---- */
+function riskHTML(){
+  return `<div class="banner"><i class="i" data-lucide="shield-alert" style="width:16px;height:16px"></i><div>Risks live here for the leads, but each also surfaces inside the phase it affects. The two queue-engagement risks carry early-warning indicators.</div></div>
+  ${RISKS.map(rk=>`<div class="risk">
+    <div class="rk-top"><span class="chip ${rk.sev}">${rk.sev==='red'?'High':'Medium'}</span><h4>${esc(rk.title)}</h4>
+      <button class="btn btn-ghost btn-sm" onclick="go('phase',${rk.phase})">Phase ${rk.phase}<i data-lucide="arrow-up-right" style="width:14px;height:14px"></i></button></div>
+    <p>${esc(rk.text)}</p>
+    <div class="rk-meta"><span><i data-lucide="activity" style="width:13px;height:13px;vertical-align:-2px"></i> Indicator · <b>${esc(rk.ind)}</b></span><span><i data-lucide="user" style="width:13px;height:13px;vertical-align:-2px"></i> Owner · <b>${esc(rk.owner)}</b></span></div>
+  </div>`).join("")}`;
+}
+
+/* ---- Audit log ---- */
+function auditHTML(){
+  return `<div class="banner"><i class="i" data-lucide="scroll-text" style="width:16px;height:16px"></i><div>Every permission change — who granted what to whom, when. This log doubles as SOC 2 evidence and is visible only to the Program Leads.</div></div>
+  <div class="card pad">${AUDIT.map(a=>`<div class="audit-row">
+    <div class="a-ico"><i data-lucide="${a.ico}" style="width:17px;height:17px"></i></div>
+    <div class="a-b"><p>${a.text}</p></div>
+    <div class="a-t">${esc(a.t)}</div>
+  </div>`).join("")}</div>`;
+}
+
+/* ============================================================================
+   COMPUTED HELPERS
+   ========================================================================== */
+function depMet(ph){
+  if(!ph.dep) return true;
+  if(ph.dep.multi) return ph.dep.multi.every(p=>PHASES[p].status==="complete");
+  return PHASES[ph.dep.phase].status==="complete";
+}
+function phaseProgress(pid){
+  const ph=PHASES[pid];
+  const objs=ph.objects, crits=ph.criteria, tasks=ph.tasks;
+  const objScore = objs.length? objs.filter(o=>o.status==="Validated").length/objs.length : 1;
+  const taskScore = tasks.length? tasks.filter(t=>t.col==="done").length/tasks.length : 1;
+  const critScore = crits.length? crits.map((_,i)=>{const c=getCrit(pid,i);return (c.attested&&c.leadA&&c.leadB)?1:0;}).reduce((a,b)=>a+b,0)/crits.length : 0;
+  return Math.round((objScore*0.4 + taskScore*0.2 + critScore*0.4)*100);
+}
+function statusChip(s){const m=STATUS_META[s];return `<span class="chip ${m.chip}">${m.label}</span>`;}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function initials(name){
+  if(!name) return "?";
+  const map={"MW":"MW","SC":"SC","PN":"PN","BY":"BY","DR":"DR","Finance":"CF","Legal":"CL","Trellis ER":"TE","Trellis Sec":"TS","Curaleaf IT":"IT"};
+  if(map[name]) return map[name];
+  const parts=name.split(" ");
+  return (parts[0][0]+(parts[1]?parts[1][0]:"")).toUpperCase();
+}
+function avG(who){
+  const m={"MW":"g1","SC":"g4","PN":"g6","BY":"g1","DR":"g3","Finance":"g5","Legal":"g2","Trellis ER":"g4","Trellis Sec":"g1","Curaleaf IT":"g5"};
+  return m[who]||"g1";
+}
+function avatar(init,size,g){return `<span class="avatar ${g||''}" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.36)}px">${esc(init)}</span>`;}
+function avatarInline(init,g,size){size=size||20;return `<span class="avatar ${g||''}" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;vertical-align:middle">${esc(init)}</span>`;}
+function logoMark(){return `<svg width="20" height="20" viewBox="0 0 48 48" fill="none"><path d="M13 30.5 L19 24 L24.5 28.5 L35 16" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="35" cy="16" r="3.6" fill="#fff"/></svg>`;}
+function ringSVG(d){
+  const total=42, frac=Math.max(0,Math.min(1,(42-Math.min(42,42-d))/42));
+  const pct = Math.max(0, Math.min(1, d/42));
+  const r=42, c=2*Math.PI*r, off=c*(1-pct);
+  return `<svg width="96" height="96" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="7"/>
+    <circle cx="50" cy="50" r="42" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 50 50)"/>
+    <text x="50" y="50" text-anchor="middle" dominant-baseline="central" fill="#fff" font-family="Hanken Grotesk, system-ui, sans-serif" font-weight="700" font-size="30" letter-spacing="-1">${d}</text></svg>`;
+}
+
+/* ============================================================================
+   ACTIONS
+   ========================================================================== */
+function go(view,phase){
+  STATE.view=view; STATE.personaMenu=false;
+  if(view==="phase"&&phase!=null){STATE.phase=phase; STATE.tab="overview";}
+  render();
+}
+function setTab(t){STATE.tab=t; render();}
+function setFilter(f){STATE.qFilter=f; render();}
+function togglePersonaMenu(e){ if(e)e.stopPropagation(); STATE.personaMenu=!STATE.personaMenu; render(); }
+function setPersona(k){
+  STATE.persona=k; STATE.personaMenu=false;
+  // route to a sensible landing screen for the persona
+  if(canSeeProgram()) STATE.view="home";
+  else { STATE.view="phase"; STATE.phase=visiblePhases()[0]; STATE.tab="overview"; }
+  render();
+  toast("Viewing as "+PERSONAS[k].name);
+}
+function attest(p,i){
+  const k=critKey(p,i); SIGN[k]=SIGN[k]||{...PHASES[p].criteria[i]};
+  SIGN[k].attested=true;
+  render(); toast("Attested — first key. Awaiting both leads.");
+}
+function countersign(p,i){
+  const k=critKey(p,i); SIGN[k]=SIGN[k]||{...PHASES[p].criteria[i]};
+  // a lead countersigns their side; for the demo, one click completes both lead keys
+  SIGN[k].leadA=true; SIGN[k].leadB=true;
+  render(); toast("Countersigned by both leads — criterion locked.");
+}
+function clearException(id,action){
+  STATE.cleared["e"+id]=action;
+  const el=document.getElementById("e"+id);
+  if(el){el.classList.add("cleared");}
+  setTimeout(()=>render(),260);
+  toast(action==="accept"?"Match accepted → canonical SKU":action==="reject"?"Match rejected":"Split into variants");
+}
+function toggleSession(){STATE.session=!STATE.session; if(STATE.session)STATE.qFilter="all"; render(); toast(STATE.session?"Working session started — NJ · confidence < 0.7 pre-loaded":"Session ended");}
+function setPrebrief(){STATE.prebrief=true; render(); toast("Sponsor pre-briefed — share unlocked");}
+
+/* ---- Feedback ---- */
+function currentContext(){
+  if(STATE.view==="home") return "Program home";
+  if(STATE.view==="phase") return `Phase ${STATE.phase} · ${PHASES[STATE.phase].short} · ${cap(STATE.tab==='module'?(PHASES[STATE.phase].module||'module'):STATE.tab)}`;
+  return cap(STATE.view);
+}
+function openFeedback(){
+  STATE.personaMenu=false;
+  document.getElementById("scrim").classList.add("show");
+  document.getElementById("panel").classList.add("show");
+  renderPanel();
+}
+function closePanel(){
+  document.getElementById("scrim").classList.remove("show");
+  document.getElementById("panel").classList.remove("show");
+}
+function renderPanel(){
+  const ctx=currentContext();
+  const notes=FEEDBACK.slice().reverse();
+  document.getElementById("panelBody").innerHTML=`
+    <div class="fb-context"><i data-lucide="map-pin" style="width:14px;height:14px"></i>On screen · <b>${esc(ctx)}</b> · as ${esc(persona().role)}</div>
+    <label class="fblabel">Your note</label>
+    <div class="field" style="align-items:flex-start"><textarea id="fbText" rows="4" placeholder="What works, what's confusing, what's missing? Tied to this screen and persona."></textarea></div>
+    <div class="divider"></div>
+    <div class="flex ai-c gap8" style="margin-bottom:12px"><span class="sm-overline">Notes so far</span><span class="grow" style="flex:1"></span><span class="chip gray">${FEEDBACK.length}</span></div>
+    ${notes.length?notes.map(n=>`<div class="fb-note">
+      <div class="fn-top"><span class="fn-where">${esc(n.where)}</span><span class="fn-time">${esc(n.time)}</span>
+        <button class="fn-del" onclick="deleteFeedback(${n.id})" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button></div>
+      <p>${esc(n.text)}</p>
+      <div class="sm-body-sm" style="font-size:11px;color:var(--fg4);margin-top:5px">as ${esc(n.role)}</div>
+    </div>`).join(""):`<div class="fb-empty">No notes yet. Your feedback is saved locally in this browser.</div>`}
+  `;
+  window.lucide&&lucide.createIcons();
+}
+function submitFeedback(){
+  const ta=document.getElementById("fbText");
+  const text=(ta?.value||"").trim();
+  if(!text){ toast("Write a note first"); return; }
+  FEEDBACK.push({id:Date.now(), text, where:currentContext(), role:persona().role, time:new Date().toLocaleString()});
+  persist();
+  renderPanel(); refreshFab(); toast("Note saved");
+}
+function deleteFeedback(id){ FEEDBACK=FEEDBACK.filter(n=>n.id!==id); persist(); renderPanel(); refreshFab(); }
+function persist(){ try{localStorage.setItem("ob_feedback",JSON.stringify(FEEDBACK));}catch(e){} }
+function refreshFab(){
+  const b=document.getElementById("fbCount");
+  if(!b) return;
+  if(FEEDBACK.length){b.style.display="inline-flex"; b.textContent=FEEDBACK.length;}
+  else b.style.display="none";
+}
+function exportFeedback(){
+  if(!FEEDBACK.length){ toast("No feedback to export yet"); return; }
+  const lines=FEEDBACK.map(n=>`• [${n.where}] (as ${n.role}, ${n.time})\n  ${n.text}`).join("\n\n");
+  const blob=new Blob([`Curaleaf Onboarding Dashboard — Feedback\n${new Date().toLocaleString()}\n\n${lines}\n`],{type:"text/plain"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download="onboarding-dashboard-feedback.txt"; a.click();
+  URL.revokeObjectURL(url);
+  if(navigator.clipboard) navigator.clipboard.writeText(lines).catch(()=>{});
+  toast("Feedback exported (and copied)");
+}
+
+/* ---- toast ---- */
+let toastT;
+function toast(msg){
+  const t=document.getElementById("toast");
+  document.getElementById("toastMsg").textContent=msg;
+  t.classList.add("show"); clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+document.addEventListener("click",()=>{ if(STATE.personaMenu){STATE.personaMenu=false; render();} });
+
+render();
+</script>
+</body>
+</html>
