@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trellis · MSO Onboarding Data Lifecycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF; --ink:#0A0C10;
+  --gray-25:#F7F8FA; --gray-50:#F1F3F6; --gray-100:#E7EAEF; --gray-200:#D9DDE4; --gray-300:#C3C9D3;
+  --gray-500:#7A8294; --gray-600:#5C6475; --gray-700:#3F4654;
+  --blue-50:#EAEEFD; --blue-600:#1B43E5; --blue-700:#1535B8;
+  --success:#14A05A; --success-bg:#E5F6ED;
+  --danger:#E5484D; --danger-bg:#FCEBEB;
+  --warning:#D88A00; --warning-bg:#FBF1DE;
+  --violet:#6E4FE8; --violet-bg:#EEEAFC;
+  --bg-canvas:var(--gray-25); --bg-surface:var(--white); --bg-inset:var(--gray-50); --bg-hover:var(--gray-100);
+  --border:var(--gray-200); --border-strong:var(--gray-300);
+  --accent:var(--blue-600); --accent-hover:var(--blue-700); --accent-soft:var(--blue-50);
+  --focus-ring:rgba(27,67,229,.32);
+  --font-sans:"Hanken Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-canvas);color:var(--ink);font:400 14px/1.55 var(--font-sans)}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus-ring)}
+.wrap{max-width:1480px;margin:0 auto;padding:20px 20px 56px}
+
+/* ============ header ============ */
+.eyebrow{font:600 11px/1.3 var(--font-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font:800 26px/1.15 var(--font-sans);letter-spacing:-.01em;margin:4px 0 6px}
+.sub{color:var(--gray-600);max-width:760px;font-size:14px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--border-strong);background:var(--bg-surface);color:var(--ink);border-radius:8px;padding:8px 14px;font:600 13px/1 var(--font-sans);transition:background .12s}
+.btn:hover{background:var(--bg-hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn.subtle{border-color:transparent;background:transparent;color:var(--gray-600)}
+.btn.subtle:hover{background:var(--bg-hover);color:var(--ink)}
+
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.stat{display:flex;align-items:baseline;gap:7px}
+.stat b{font:700 22px/1 var(--font-sans)}
+.stat span{font:500 12px/1.3 var(--font-sans);color:var(--gray-600)}
+.stat .dot{width:8px;height:8px;border-radius:50%;align-self:center}
+
+/* ============ license hinge strip ============ */
+.panel-label{font:600 11px/1.3 var(--font-sans);letter-spacing:.1em;text-transform:uppercase;color:var(--gray-600);margin:26px 0 8px}
+.lic-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.lic{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.lic.expired{border-color:var(--danger);background:var(--danger-bg)}
+.lic .num{font:600 13px/1.3 var(--font-mono)}
+.lic .meta{font-size:12px;color:var(--gray-600)}
+.lic .pill{font:600 11px/1 var(--font-sans);padding:4px 9px;border-radius:99px}
+.lic .pill.active{background:var(--success-bg);color:var(--success)}
+.lic .pill.expired{background:var(--danger);color:#fff}
+.lic .rgt{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.lic button{font-size:12px;padding:5px 10px}
+
+/* ============ flow diagram ============ */
+.flow{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px 4px;margin-top:10px;overflow-x:auto}
+.flow svg{display:block;min-width:760px;width:100%;height:auto}
+
+/* ============ controls ============ */
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0 10px}
+.controls input[type=search]{border:1px solid var(--border-strong);border-radius:8px;padding:8px 12px;font:400 13px var(--font-sans);min-width:200px;background:var(--bg-surface)}
+.controls select{border:1px solid var(--border-strong);border-radius:8px;padding:8px 10px;font:500 13px var(--font-sans);background:var(--bg-surface)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border-strong);background:var(--bg-surface);border-radius:99px;padding:6px 11px;font:600 12px/1 var(--font-sans);color:var(--gray-700)}
+.chip .sw{width:9px;height:9px;border-radius:3px}
+.chip.off{opacity:.38}
+.hint{font-size:12px;color:var(--gray-500);margin-left:auto}
+
+/* ============ board ============ */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.col{background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;max-height:78vh}
+.col-h{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:var(--bg-inset);border-radius:var(--r) var(--r) 0 0;z-index:2}
+.col-h .bar{width:4px;height:16px;border-radius:2px}
+.col-h h2{font:700 13px/1.2 var(--font-sans)}
+.col-h .cnt{margin-left:auto;font:600 11px/1 var(--font-mono);background:var(--bg-surface);border:1px solid var(--border);border-radius:99px;padding:4px 8px;color:var(--gray-600)}
+.col-sub{font-size:11px;color:var(--gray-500);padding:7px 12px 0}
+.col-body{padding:8px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;flex:1}
+.empty{font-size:12px;color:var(--gray-500);padding:14px 10px;text-align:center;border:1px dashed var(--border-strong);border-radius:8px;margin:6px}
+
+.card{background:var(--bg-surface);border:1px solid var(--border);border-left-width:4px;border-radius:8px;padding:9px 10px 8px;cursor:pointer;transition:box-shadow .12s,transform .12s}
+.card:hover{box-shadow:0 2px 10px rgba(10,12,16,.08)}
+.card .nm{font:600 13px/1.35 var(--font-sans)}
+.card .sor{font:400 11px/1.4 var(--font-sans);color:var(--gray-600);margin-top:1px}
+.card .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.tag{font:600 10px/1 var(--font-sans);padding:3px 7px;border-radius:99px;background:var(--bg-inset);color:var(--gray-700);border:1px solid var(--border)}
+.tag.lic-t{font-family:var(--font-mono)}
+.tag.hold{background:var(--warning-bg);color:var(--warning);border-color:transparent}
+.card .note{font-size:11px;color:var(--gray-600);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)}
+.card .acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.mini{font:600 11px/1 var(--font-sans);border:1px solid var(--border-strong);background:var(--bg-surface);border-radius:6px;padding:5px 9px;color:var(--gray-700)}
+.mini:hover{background:var(--bg-hover)}
+.mini.go{border-color:var(--accent);color:var(--accent)}
+.mini.go:hover{background:var(--accent-soft)}
+.mini[disabled]{opacity:.45;cursor:not-allowed}
+.card.dim{opacity:.62}
+.card.flash{animation:flash 1.1s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--focus-ring)}100%{box-shadow:none}}
+
+/* ============ webhook rail ============ */
+.rail{background:var(--ink);border-radius:var(--r);color:#E7EAEF;display:flex;flex-direction:column;max-height:78vh;position:sticky;top:14px}
+.rail-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #232733}
+.rail-h .live{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.rail-h h2{font:700 13px/1 var(--font-sans)}
+.rail-h .cnt{margin-left:auto;font:600 11px/1 var(--font-mono);color:#9aa2b3}
+.rail-h .clr{background:none;border:none;color:#9aa2b3;font:600 11px var(--font-sans)}
+.rail-h .clr:hover{color:#fff}
+.rail-sub{font-size:11px;color:#8a92a5;padding:9px 14px;border-bottom:1px solid #232733}
+.rail-body{overflow-y:auto;flex:1;padding:6px 0}
+.ev{padding:8px 14px;border-bottom:1px solid #1a1e29;cursor:pointer}
+.ev:hover{background:#13161e}
+.ev .l1{display:flex;align-items:center;gap:8px}
+.ev .t{font:500 10px/1 var(--font-mono);color:#6f7789}
+.ev .name{font:600 11px/1.2 var(--font-mono)}
+.ev .l2{font:400 11.5px/1.45 var(--font-sans);color:#c6ccd9;margin-top:4px}
+.ev .trig{font:600 9.5px/1 var(--font-mono);color:#8a92a5;background:#1a1e29;border-radius:4px;padding:3px 6px;margin-left:auto;white-space:nowrap}
+.ev pre{display:none;font:400 10.5px/1.5 var(--font-mono);color:#9fd1b4;background:#0e1117;border-radius:6px;padding:8px 10px;margin-top:7px;overflow-x:auto}
+.ev.open pre{display:block}
+.ev.flash{animation:evflash 1.2s ease-out}
+@keyframes evflash{0%{background:#1c2333}100%{background:transparent}}
+.ev-empty{color:#6f7789;font-size:12px;padding:18px 14px;text-align:center}
+
+/* ============ legend / footer ============ */
+.legend{margin-top:22px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;font-size:12.5px;color:var(--gray-700)}
+.legend b{color:var(--ink)}
+.legend .row{display:flex;gap:8px;align-items:baseline;margin:3px 0}
+.legend .sw{width:9px;height:9px;border-radius:3px;flex:none;position:relative;top:0}
+
+/* ============ drawer ============ */
+.overlay{position:fixed;inset:0;background:rgba(10,12,16,.42);display:none;z-index:40}
+.overlay.show{display:block}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(440px,100%);background:var(--bg-surface);z-index:50;transform:translateX(105%);transition:transform .22s ease;display:flex;flex-direction:column;box-shadow:-8px 0 32px rgba(10,12,16,.18)}
+.drawer.show{transform:none}
+.dr-h{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dr-h h2{font:700 16px/1.2 var(--font-sans)}
+.dr-b{padding:16px 18px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:13px}
+.fld label{display:block;font:600 11px/1.3 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--gray-600);margin-bottom:5px}
+.fld input[type=text],.fld select,.fld textarea{width:100%;border:1px solid var(--border-strong);border-radius:8px;padding:9px 11px;font:400 13.5px var(--font-sans);background:var(--bg-surface)}
+.fld textarea{resize:vertical;min-height:64px}
+.fld .help{font-size:11px;color:var(--gray-500);margin-top:4px}
+.fld2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.switch{display:flex;align-items:center;gap:9px;font:500 13px var(--font-sans)}
+.dr-f{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between}
+.dr-f .grp{display:flex;gap:8px}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.danger:hover{background:var(--danger-bg)}
+
+/* ============ toast ============ */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;font:500 13px var(--font-sans);padding:11px 16px;border-radius:9px;opacity:0;transition:all .2s;z-index:80;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:1119px){
+  .layout{grid-template-columns:1fr}
+  .rail{position:static;max-height:430px}
+  .board{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
+  .col{flex:0 0 min(82vw,320px);scroll-snap-align:start;max-height:64vh}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hdr">
+    <div>
+      <div class="eyebrow">Trellis Platform · Working Model</div>
+      <h1>MSO Onboarding — Data Lifecycle</h1>
+      <p class="sub">Every datapoint required to onboard the Curaleaf NJ wedge, its source method, and the stage it occupies. Collected and confirmed inputs land in <b>Review-Ready</b>; Metrc and other trusted imports land in <b>Trusted-Source</b> and flow to Live without intervention — the pre-live capture exists so a webhook fires on every transition.</p>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btnSync" title="Auto-flow everything in Trusted-Source to Live">▸ Run sync cycle</button>
+      <button class="btn" id="btnAdd">+ Add datapoint</button>
+      <button class="btn" id="btnExport">Export JSON</button>
+      <button class="btn" id="btnImport">Import</button>
+      <input type="file" id="fileImport" accept="application/json" hidden>
+      <button class="btn subtle" id="btnReset">Reset seed</button>
+    </div>
+  </header>
+
+  <div class="panel-label">License hinge — every license-scoped record below inherits its validity from one of these</div>
+  <div class="lic-strip" id="licStrip"></div>
+
+  <div class="flow" id="flowWrap">
+    <svg viewBox="0 0 980 168" xmlns="http://www.w3.org/2000/svg" aria-label="Lifecycle flow: Review-Ready and Trusted-Source converge into Live; license expiry moves Live to Historic; renewal restores it.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7A8294"/></marker>
+        <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#C3C9D3"/></marker>
+      </defs>
+      <g font-family="Hanken Grotesk,sans-serif">
+        <!-- nodes -->
+        <rect x="14" y="18" width="178" height="44" rx="9" fill="#FBF1DE" stroke="#D88A00"/>
+        <text x="103" y="38" text-anchor="middle" font-size="13" font-weight="700" fill="#0A0C10">Review-Ready</text>
+        <text x="103" y="53" text-anchor="middle" font-size="10" fill="#5C6475">collected · confirmed</text>
+
+        <rect x="14" y="102" width="178" height="44" rx="9" fill="#E5F6ED" stroke="#14A05A"/>
+        <text x="103" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="#0A0C10">Trusted-Source</text>
+        <text x="103" y="137" text-anchor="middle" font-size="10" fill="#5C6475">Metrc · IdP · registry checks</text>
+
+        <rect x="442" y="58" width="150" height="48" rx="9" fill="#EAEEFD" stroke="#1B43E5" stroke-width="1.5"/>
+        <text x="517" y="79" text-anchor="middle" font-size="14" font-weight="800" fill="#0A0C10">Live</text>
+        <text x="517" y="95" text-anchor="middle" font-size="10" fill="#5C6475">valid for transactions</text>
+
+        <rect x="800" y="58" width="160" height="48" rx="9" fill="#F1F3F6" stroke="#C3C9D3"/>
+        <text x="880" y="79" text-anchor="middle" font-size="13" font-weight="700" fill="#3F4654">Historic</text>
+        <text x="880" y="95" text-anchor="middle" font-size="10" fill="#5C6475">reportable · read-only</text>
+
+        <!-- edges -->
+        <path d="M192 40 C 320 40 330 70 440 78" fill="none" stroke="#7A8294" stroke-width="1.6" marker-end="url(#ah)"/>
+        <text x="300" y="36" font-size="10.5" font-weight="600" fill="#5C6475">⚡ validate &amp; promote</text>
+        <text x="300" y="49" font-size="9.5" fill="#7A8294">human attests</text>
+
+        <path d="M192 124 C 320 124 330 96 440 87" fill="none" stroke="#14A05A" stroke-width="1.6" marker-end="url(#ah)"/>
+        <text x="300" y="124" font-size="10.5" font-weight="600" fill="#14A05A">⚡ auto-flow</text>
+        <text x="300" y="137" font-size="9.5" fill="#7A8294">no intervention required</text>
+
+        <path d="M592 76 L 798 76" fill="none" stroke="#7A8294" stroke-width="1.6" marker-end="url(#ah)"/>
+        <text x="695" y="66" text-anchor="middle" font-size="10.5" font-weight="600" fill="#E5484D">⚡ license expires</text>
+        <rect x="666" y="80" width="58" height="16" rx="8" fill="#FCEBEB"/>
+        <text x="695" y="91.5" text-anchor="middle" font-size="9" font-weight="700" fill="#E5484D">the hinge</text>
+
+        <path d="M798 98 C 720 122 670 122 594 100" fill="none" stroke="#C3C9D3" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#ahb)"/>
+        <text x="695" y="130" text-anchor="middle" font-size="10" fill="#7A8294">⚡ license renews · restore</text>
+
+        <text x="14" y="163" font-size="10" fill="#7A8294">⚡ = webhook fires on every stage transition, for every datapoint — including the Trusted-Source capture before auto-flow.</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <input type="search" id="q" placeholder="Search datapoints or sources…" aria-label="Search datapoints">
+    <select id="fTier" aria-label="Filter by tier"></select>
+    <select id="fScope" aria-label="Filter by scope">
+      <option value="all">All scopes</option>
+      <option value="org">Org-level</option>
+      <option value="CUL">NJ-CUL-0007</option>
+      <option value="MFG">NJ-MFG-0012</option>
+      <option value="RE">NJ-RE-0588</option>
+    </select>
+    <span id="methodChips"></span>
+    <span class="hint">Click any card to edit · buttons on each card move it through the lifecycle</span>
+  </div>
+
+  <div class="layout">
+    <div class="board" id="board"></div>
+    <aside class="rail">
+      <div class="rail-h">
+        <span class="live"></span><h2>Webhook feed</h2>
+        <span class="cnt" id="evCnt">0 fired</span>
+        <button class="clr" id="btnClear">Clear</button>
+      </div>
+      <div class="rail-sub">POST → https://hooks.trellis.io/curaleaf-nj · fires on every status change · click an event for the payload</div>
+      <div class="rail-body" id="railBody"></div>
+    </aside>
+  </div>
+
+  <div class="legend">
+    <div class="row"><span class="sw" style="background:var(--warning)"></span><span><b>Review-Ready</b> — pre-live holding stage for collected and confirmed inputs. Little validation on entry; editable; joinable with other datasets. A human validates to promote.</span></div>
+    <div class="row"><span class="sw" style="background:var(--success)"></span><span><b>Trusted-Source</b> — pre-live capture for Metrc and other system-validated imports. No intervention required; auto-flows to Live. Captured as its own state so transition webhooks fire even for trusted data.</span></div>
+    <div class="row"><span class="sw" style="background:var(--accent)"></span><span><b>Live</b> — validated and eligible for transactions, dashboards, and order flow.</span></div>
+    <div class="row"><span class="sw" style="background:var(--gray-500)"></span><span><b>Historic</b> — the license hinge: when a license expires, every record scoped to it leaves Live automatically. Still present on historic reports; closed for transactions; restored if the license renews.</span></div>
+    <div class="row" style="margin-top:8px"><span class="sw" style="background:transparent"></span><span>Source methods: <b style="color:var(--blue-600)">collected</b> — provided by the MSO · <b style="color:var(--success)">derived</b> — synced from Metrc / trusted systems · <b style="color:var(--warning)">confirmed</b> — exists in two systems, a human joins and attests · <b style="color:var(--violet)">generated</b> — produced by Trellis.</span></div>
+  </div>
+
+</div>
+
+<!-- drawer -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drTitle">
+  <div class="dr-h"><h2 id="drTitle">Edit datapoint</h2><button class="btn subtle" id="drClose" aria-label="Close">✕</button></div>
+  <div class="dr-b">
+    <div class="fld"><label for="eName">Datapoint</label><input type="text" id="eName"></div>
+    <div class="fld"><label for="eSor">System of record</label><input type="text" id="eSor"></div>
+    <div class="fld2">
+      <div class="fld"><label for="eTier">Tier</label><select id="eTier"></select></div>
+      <div class="fld"><label for="eMethod">Source method</label>
+        <select id="eMethod">
+          <option value="c">collected</option><option value="d">derived</option>
+          <option value="f">confirmed</option><option value="g">generated</option>
+        </select>
+        <div class="help">derived enters Trusted-Source · collected &amp; confirmed enter Review-Ready</div>
+      </div>
+    </div>
+    <div class="fld2">
+      <div class="fld"><label for="eScope">Scope</label>
+        <select id="eScope">
+          <option value="org">Org-level</option><option value="CUL">License · NJ-CUL-0007</option>
+          <option value="MFG">License · NJ-MFG-0012</option><option value="RE">License · NJ-RE-0588</option>
+        </select>
+        <div class="help">License-scoped records follow the hinge</div>
+      </div>
+      <div class="fld"><label for="eStage">Stage</label>
+        <select id="eStage">
+          <option value="rr">Review-Ready</option><option value="ts">Trusted-Source</option>
+          <option value="lv">Live</option><option value="hs">Historic</option>
+        </select>
+      </div>
+    </div>
+    <div class="fld"><label for="eNote">Note</label><textarea id="eNote" placeholder="Validation context, exceptions, open questions…"></textarea></div>
+    <label class="switch"><input type="checkbox" id="eHold"> Hold — exclude from auto-flow (e.g., pending scope or PHI decision)</label>
+  </div>
+  <div class="dr-f">
+    <button class="btn danger" id="drDelete">Delete</button>
+    <div class="grp"><button class="btn" id="drCancel">Cancel</button><button class="btn primary" id="drSave">Save changes</button></div>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ---------- constants ---------- */
+const TIERS={1:"Operator & entities",2:"Identity & access",3:"License registry",4:"Metrc connectivity",5:"Facility graph",6:"Compliance datasets",7:"Master data & joins",8:"Financial boundary"};
+const METHODS={c:{n:"collected",col:"var(--blue-600)"},d:{n:"derived",col:"var(--success)"},f:{n:"confirmed",col:"var(--warning)"},g:{n:"generated",col:"var(--violet)"}};
+const STAGES={rr:{n:"Review-Ready",col:"var(--warning)",sub:"Pre-live · awaiting validation or join"},ts:{n:"Trusted-Source",col:"var(--success)",sub:"Pre-live capture · auto-flows to Live"},lv:{n:"Live",col:"var(--accent)",sub:"Valid for transactions"},hs:{n:"Historic",col:"var(--gray-500)",sub:"Reportable · closed for transactions"}};
+const EVCOL={captured:"#7FB0FF",promoted:"#5BD68F",restored:"#5BD68F",demoted:"#F2B95C",held:"#F2B95C",released:"#F2B95C",archived:"#9aa2b3",updated:"#7FB0FF",deleted:"#9aa2b3",expired:"#FF8A8E",renewed:"#5BD68F",sync:"#B49CFF"};
+
+/* ---------- seed ---------- */
+function seedLicenses(){return[
+  {key:"CUL",num:"NJ-CUL-0007",type:"Cultivation",holder:"Curaleaf NJ, Inc.",exp:"2026-12-31",status:"active"},
+  {key:"MFG",num:"NJ-MFG-0012",type:"Manufacturing",holder:"Curaleaf NJ, Inc.",exp:"2027-03-31",status:"active"},
+  {key:"RE",num:"NJ-RE-0588",type:"Retail · Bordentown",holder:"Curaleaf NJ Holdings, LLC",exp:"2026-09-30",status:"active"},
+];}
+/* n, tier, method, SoR, scope, stage, note, hold */
+const SEED=[
+ ["Organization record",1,"c","Curaleaf Legal","org","lv"],
+ ["Legal entity graph",1,"c","Curaleaf Legal","org","lv"],
+ ["Principal officers & owners",1,"c","Curaleaf Legal","org","lv"],
+ ["Program Lead & exec sponsor",1,"c","Curaleaf","org","lv"],
+ ["SSO / SAML configuration",2,"c","Curaleaf IdP (Okta)","org","lv"],
+ ["SCIM endpoint & attribute map",2,"g","Trellis Platform","org","lv"],
+ ["User roster",2,"d","Curaleaf IdP via SCIM","org","lv"],
+ ["Access grants (role × scope)",2,"f","Curaleaf + Trellis","org","lv"],
+ ["State agent credentials",2,"c","Curaleaf HR / NJ-CRC","org","rr","Badge expiries outstanding for 14 of 61 staff"],
+ ["License certificates (PDF)",3,"c","NJ-CRC","org","lv"],
+ ["License core fields",3,"c","Curaleaf Compliance","org","lv","Number · type · class · dates · premises"],
+ ["License-to-entity mapping",3,"f","Curaleaf + Metrc","org","lv"],
+ ["License scope register",3,"c","Curaleaf Compliance","org","lv","20 of 24 licenses in scope — 4 documented exceptions"],
+ ["Track-and-trace system map",3,"d","Jurisdiction config","org","lv","NJ → Metrc. Non-Metrc states gate Tier 4."],
+ ["Renewal calendar & status",3,"c","Curaleaf Compliance","org","rr"],
+ ["Trellis vendor API key (NJ)",4,"g","Trellis Platform","org","lv"],
+ ["Metrc user API key (NJ)",4,"c","Curaleaf Metrc admin","org","lv"],
+ ["License sync feed",4,"d","Metrc NJ","org","ts","2 of 20 licenses failing scheduled sync"],
+ ["Sync configuration",4,"f","Curaleaf + Trellis","org","rr","Domains · backfill window · cadence — pending dual sign-off"],
+ ["Sync health monitor",4,"g","Trellis Platform","org","lv"],
+ ["Cultivation facility & rooms",5,"d","Metrc NJ","CUL","lv"],
+ ["Processing facility & rooms",5,"d","Metrc NJ","MFG","lv"],
+ ["Bordentown dispensary profile",5,"d","Metrc NJ","RE","lv"],
+ ["Facility employee records",5,"d","Metrc NJ","RE","lv"],
+ ["Drivers & vehicles",5,"d","Metrc NJ","MFG","ts"],
+ ["Retail operating hours",5,"c","Curaleaf Ops","RE","rr"],
+ ["Plant batches",6,"d","Metrc NJ","CUL","lv"],
+ ["Individual plants & phases",6,"d","Metrc NJ","CUL","lv"],
+ ["Harvest batches",6,"d","Metrc NJ","CUL","lv"],
+ ["Waste & destruction events",6,"d","Metrc NJ","CUL","ts"],
+ ["Plant & package tag inventory",6,"d","Metrc NJ","CUL","lv"],
+ ["Packages & lots",6,"d","Metrc NJ","MFG","lv"],
+ ["State item catalog",6,"d","Metrc NJ","MFG","lv"],
+ ["Lab results & COAs",6,"d","Metrc NJ","MFG","ts"],
+ ["Strain records (NJ)",6,"d","Metrc NJ","CUL","lv"],
+ ["Outbound transfer manifests",6,"d","Metrc NJ","MFG","lv"],
+ ["Inbound transfer manifests",6,"d","Metrc NJ","RE","lv"],
+ ["Manifest history backfill",6,"d","Metrc history","MFG","ts","Record-count validation in progress"],
+ ["Sales receipts",6,"d","Metrc NJ","RE","lv"],
+ ["Transaction line items",6,"d","Metrc NJ","RE","lv"],
+ ["Patient & caregiver IDs",6,"d","Metrc NJ","RE","ts","PHI — held pending scope decision",true],
+ ["Canonical SKU registry",7,"g","Trellis · Curaleaf-confirmed","org","rr","Awaiting confirmation on 212 of 1,840 SKUs"],
+ ["SKU ↔ Metrc item crosswalk",7,"f","Trellis ER + Curaleaf","org","rr","ER pipeline proposes · human accepts"],
+ ["Strain normalization map",7,"f","Trellis + Curaleaf","org","rr"],
+ ["UoM normalization",7,"g","Trellis Platform","org","lv"],
+ ["New-item governance rules",7,"c","Curaleaf Ops","org","rr"],
+ ["Counterparty directory",7,"d","Metrc transfers","org","lv","Mined from 24 months of manifests"],
+ ["Counterparty license verification",7,"g","Trellis × NJ-CRC registry","org","ts","Automated registry check — trusted source"],
+ ["Commercial terms — top 9",7,"c","Curaleaf Finance","org","rr","5 of 9 counterparties at 80% volume signed"],
+ ["Invoicing entity map",8,"f","Curaleaf Finance + Legal","org","rr"],
+ ["State tax & excise registrations",8,"c","Curaleaf Finance","org","rr"],
+ ["ERP order objects (Canopy)",8,"f","Curaleaf ERP","org","rr"],
+ ["Invoice register",8,"f","Curaleaf ERP","org","rr"],
+ ["ACH authorization",8,"c","Curaleaf Finance","org","rr","Phase 6 — not a go-live gate"],
+];
+function seedCards(){return SEED.map((r,i)=>({id:"c"+(i+1),n:r[0],t:r[1],m:r[2],s:r[3],sc:r[4],st:r[5],note:r[6]||"",hold:!!r[7]}));}
+
+/* ---------- state ---------- */
+let cards=seedCards(), licenses=seedLicenses(), log=[], evTotal=0, nextId=SEED.length+1, editId=null;
+const filt={q:"",tier:"all",scope:"all",methods:new Set(["c","d","f","g"])};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const now=()=>new Date().toTimeString().slice(0,8);
+const licByKey=k=>licenses.find(l=>l.key===k);
+
+/* ---------- webhooks ---------- */
+function fire(ev,msg,trig,payload){
+  evTotal++;
+  log.unshift({t:now(),ev,msg,trig,payload,fresh:true});
+  if(log.length>200)log.pop();
+  renderRail();
+}
+function cardPayload(c,from,to,trig){
+  return{event:"datapoint."+to,id:c.id,name:c.n,tier:TIERS[c.t],method:METHODS[c.m].n,
+    from:from?STAGES[from].n:null,to:STAGES[c.st]?STAGES[c.st].n:null,
+    license:c.sc==="org"?null:licByKey(c.sc)?.num,trigger:trig,ts:new Date().toISOString()};
+}
+
+/* ---------- transitions ---------- */
+function transition(id,to,trig,evName){
+  const c=cards.find(x=>x.id===id); if(!c||c.st===to)return;
+  const from=c.st; c.st=to; c.flash=true;
+  const map={lv:from==="hs"?"restored":"promoted",hs:"archived",rr:"demoted",ts:"captured"};
+  const ev=evName||map[to]||"updated";
+  fire("datapoint."+ev,`${c.n} — ${STAGES[from].n} → ${STAGES[to].n}`,trig,cardPayload(c,from,ev,trig));
+  renderAll();
+}
+function restoreCard(id){
+  const c=cards.find(x=>x.id===id);
+  if(c.sc!=="org"){const l=licByKey(c.sc);
+    if(l&&l.status==="expired"){toast(`${l.num} is expired — renew the license to restore its data.`);return;}}
+  transition(id,"lv","manual_restore");
+}
+function runSync(){
+  const q=cards.filter(c=>c.st==="ts"&&!c.hold);
+  if(!q.length){toast("Trusted-Source is clear — nothing to flow.");return;}
+  fire("sync.cycle_started",`${q.length} trusted datapoint${q.length>1?"s":""} queued for auto-flow`,"scheduler",{event:"sync.cycle_started",count:q.length,ts:new Date().toISOString()});
+  q.forEach((c,i)=>setTimeout(()=>{
+    transition(c.id,"lv","trusted_auto_flow");
+    if(i===q.length-1)fire("sync.cycle_completed",`Auto-flow complete — ${q.length} promoted to Live, 0 interventions`,"scheduler",{event:"sync.cycle_completed",promoted:q.length,ts:new Date().toISOString()});
+  },180*(i+1)));
+}
+function expireLicense(key){
+  const l=licByKey(key); l.status="expired";
+  fire("license.expired",`${l.num} (${l.type}) expired — cascading scoped data to Historic`,"license_hinge",{event:"license.expired",license:l.num,holder:l.holder,ts:new Date().toISOString()});
+  const hit=cards.filter(c=>c.sc===key&&c.st==="lv");
+  hit.forEach((c,i)=>setTimeout(()=>transition(c.id,"hs","license_expired"),160*(i+1)));
+  if(!hit.length)renderAll();
+}
+function renewLicense(key){
+  const l=licByKey(key); l.status="active";
+  fire("license.renewed",`${l.num} renewed — restoring scoped Historic data to Live`,"license_hinge",{event:"license.renewed",license:l.num,ts:new Date().toISOString()});
+  const hit=cards.filter(c=>c.sc===key&&c.st==="hs");
+  hit.forEach((c,i)=>setTimeout(()=>transition(c.id,"lv","license_renewed"),160*(i+1)));
+  if(!hit.length)renderAll();
+}
+function toggleHold(id){
+  const c=cards.find(x=>x.id===id); c.hold=!c.hold;
+  fire("datapoint."+(c.hold?"held":"released"),`${c.n} — ${c.hold?"excluded from":"returned to"} auto-flow`,"manual",cardPayload(c,c.st,c.hold?"held":"released","manual"));
+  renderAll();
+}
+
+/* ---------- rendering ---------- */
+function renderStats(){
+  const n=s=>cards.filter(c=>c.st===s).length;
+  $("stats").innerHTML=Object.entries(STAGES).map(([k,v])=>
+    `<span class="stat"><span class="dot" style="background:${v.col}"></span><b>${n(k)}</b><span>${v.n}</span></span>`).join("")+
+    `<span class="stat"><b>${evTotal}</b><span>webhooks fired</span></span>`;
+}
+function renderLicenses(){
+  $("licStrip").innerHTML=licenses.map(l=>`
+    <div class="lic ${l.status}">
+      <div><div class="num">${esc(l.num)}</div>
+        <div class="meta">${esc(l.type)} · ${esc(l.holder)} · expires ${esc(l.exp)}</div></div>
+      <div class="rgt"><span class="pill ${l.status}">${l.status==="active"?"Active":"Expired"}</span>
+        ${l.status==="active"
+          ?`<button class="btn danger" data-exp="${l.key}">Expire license</button>`
+          :`<button class="btn" data-ren="${l.key}">Renew license</button>`}</div>
+    </div>`).join("");
+  document.querySelectorAll("[data-exp]").forEach(b=>b.onclick=()=>expireLicense(b.dataset.exp));
+  document.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>renewLicense(b.dataset.ren));
+}
+function visible(c){
+  if(!filt.methods.has(c.m))return false;
+  if(filt.tier!=="all"&&String(c.t)!==filt.tier)return false;
+  if(filt.scope!=="all"&&c.sc!==filt.scope)return false;
+  if(filt.q){const q=filt.q.toLowerCase();
+    if(!c.n.toLowerCase().includes(q)&&!c.s.toLowerCase().includes(q))return false;}
+  return true;
+}
+function actionsFor(c){
+  if(c.st==="rr")return`<button class="mini go" data-act="promote" data-id="${c.id}">Validate → Live</button>`;
+  if(c.st==="ts")return c.hold
+    ?`<button class="mini" data-act="hold" data-id="${c.id}">Release hold</button>`
+    :`<button class="mini go" data-act="flow" data-id="${c.id}">Flow → Live</button><button class="mini" data-act="hold" data-id="${c.id}">Hold</button>`;
+  if(c.st==="lv")return`<button class="mini" data-act="demote" data-id="${c.id}">↩ Review</button><button class="mini" data-act="archive" data-id="${c.id}">Archive</button>`;
+  return`<button class="mini go" data-act="restore" data-id="${c.id}">Restore → Live</button>`;
+}
+function cardHTML(c){
+  const lic=c.sc==="org"?"Org":licByKey(c.sc)?.num.replace("NJ-","")||c.sc;
+  const dim=c.sc!=="org"&&licByKey(c.sc)?.status==="expired"&&c.st==="hs"?" dim":"";
+  return`<div class="card${dim}${c.flash?" flash":""}" data-edit="${c.id}" style="border-left-color:${METHODS[c.m].col}">
+    <div class="nm">${esc(c.n)}</div><div class="sor">${esc(c.s)}</div>
+    <div class="tags"><span class="tag">T${c.t}</span><span class="tag" style="color:${METHODS[c.m].col}">${METHODS[c.m].n}</span>
+      <span class="tag lic-t">${esc(lic)}</span>${c.hold?'<span class="tag hold">⏸ held</span>':""}</div>
+    ${c.note?`<div class="note">${esc(c.note)}</div>`:""}
+    <div class="acts">${actionsFor(c)}</div></div>`;
+}
+const EMPTIES={rr:"Nothing waiting on review.",ts:"No trusted imports queued.",lv:"Nothing live yet.",hs:"Expire a license to watch the cascade."};
+function renderBoard(){
+  $("board").innerHTML=Object.entries(STAGES).map(([k,v])=>{
+    const items=cards.filter(c=>c.st===k&&visible(c));
+    return`<section class="col"><div class="col-h"><span class="bar" style="background:${v.col}"></span>
+      <h2>${v.n}</h2><span class="cnt">${items.length}</span></div>
+      <div class="col-sub">${v.sub}</div>
+      <div class="col-body">${items.length?items.map(cardHTML).join(""):`<div class="empty">${EMPTIES[k]}</div>`}</div></section>`;
+  }).join("");
+  cards.forEach(c=>delete c.flash);
+  document.querySelectorAll("[data-act]").forEach(b=>b.onclick=e=>{
+    e.stopPropagation();const id=b.dataset.id;
+    ({promote:()=>transition(id,"lv","manual_validation"),
+      flow:()=>transition(id,"lv","trusted_auto_flow"),
+      demote:()=>transition(id,"rr","manual_review"),
+      archive:()=>transition(id,"hs","manual_archive"),
+      restore:()=>restoreCard(id),
+      hold:()=>toggleHold(id)})[b.dataset.act]();
+  });
+  document.querySelectorAll("[data-edit]").forEach(el=>el.onclick=()=>openDrawer(el.dataset.edit));
+}
+function renderRail(){
+  $("evCnt").textContent=evTotal+" fired";
+  $("railBody").innerHTML=log.length?log.map((e,i)=>`
+    <div class="ev${e.fresh?" flash":""}" data-ev="${i}">
+      <div class="l1"><span class="t">${e.t}</span>
+        <span class="name" style="color:${EVCOL[e.ev.split(".")[1]]||EVCOL.sync}">${esc(e.ev)}</span>
+        <span class="trig">${esc(e.trig)}</span></div>
+      <div class="l2">${esc(e.msg)}</div>
+      <pre>${esc(JSON.stringify(e.payload,null,2))}</pre></div>`).join("")
+    :`<div class="ev-empty">No events yet — move a datapoint or run a sync cycle.</div>`;
+  log.forEach(e=>delete e.fresh);
+  document.querySelectorAll("[data-ev]").forEach(el=>el.onclick=()=>el.classList.toggle("open"));
+}
+function renderAll(){renderStats();renderLicenses();renderBoard();}
+
+/* ---------- drawer ---------- */
+function openDrawer(id){
+  editId=id;const c=id?cards.find(x=>x.id===id):null;
+  $("drTitle").textContent=c?"Edit datapoint":"Add datapoint";
+  $("drDelete").style.visibility=c?"visible":"hidden";
+  $("eName").value=c?c.n:"";$("eSor").value=c?c.s:"";
+  $("eTier").value=c?c.t:"1";$("eMethod").value=c?c.m:"c";
+  $("eScope").value=c?c.sc:"org";$("eStage").value=c?c.st:"rr";
+  $("eNote").value=c?c.note:"";$("eHold").checked=c?c.hold:false;
+  delete $("eStage").dataset.touched;
+  $("overlay").classList.add("show");$("drawer").classList.add("show");
+  $("eName").focus();
+}
+function closeDrawer(){$("overlay").classList.remove("show");$("drawer").classList.remove("show");editId=null;}
+function saveDrawer(){
+  const name=$("eName").value.trim();if(!name){toast("Name the datapoint before saving.");return;}
+  const v={n:name,s:$("eSor").value.trim()||"—",t:+$("eTier").value,m:$("eMethod").value,
+    sc:$("eScope").value,st:$("eStage").value,note:$("eNote").value.trim(),hold:$("eHold").checked};
+  if(editId){
+    const c=cards.find(x=>x.id===editId);const from=c.st,heldB=c.hold;
+    const tgt=v.st;v.st=from;Object.assign(c,v);
+    if(from!==tgt)transition(c.id,tgt,"edit");
+    else fire("datapoint.updated",`${c.n} — definition edited`,"edit",cardPayload(c,from,"updated","edit"));
+    if(heldB!==c.hold)fire("datapoint."+(c.hold?"held":"released"),`${c.n} — hold ${c.hold?"set":"released"}`,"edit",cardPayload(c,c.st,c.hold?"held":"released","edit"));
+  }else{
+    const c={id:"c"+(nextId++),...v};
+    cards.push(c);
+    fire("datapoint.captured",`${c.n} — entered ${STAGES[c.st].n}`,"intake",cardPayload(c,null,"captured","intake"));
+  }
+  closeDrawer();renderAll();
+}
+function deleteCard(){
+  const c=cards.find(x=>x.id===editId);if(!c)return;
+  cards=cards.filter(x=>x.id!==editId);
+  fire("datapoint.deleted",`${c.n} — removed from the registry`,"edit",{event:"datapoint.deleted",id:c.id,name:c.n,ts:new Date().toISOString()});
+  closeDrawer();renderAll();
+}
+
+/* ---------- io ---------- */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),licenses,cards},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="trellis-data-lifecycle.json";a.click();URL.revokeObjectURL(a.href);
+  toast("Exported trellis-data-lifecycle.json");
+}
+function importJSON(file){
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);
+    if(!Array.isArray(d.cards))throw 0;
+    cards=d.cards;if(Array.isArray(d.licenses))licenses=d.licenses;
+    nextId=cards.length+1;renderAll();toast(`Imported ${cards.length} datapoints.`);
+  }catch{toast("Couldn't read that file — expected JSON exported from this model.");}};
+  r.readAsText(file);
+}
+
+/* ---------- toast ---------- */
+let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600);}
+
+/* ---------- filters & wiring ---------- */
+function buildFilters(){
+  $("fTier").innerHTML=`<option value="all">All tiers</option>`+
+    Object.entries(TIERS).map(([k,v])=>`<option value="${k}">T${k} · ${v}</option>`).join("");
+  $("methodChips").innerHTML=Object.entries(METHODS).map(([k,v])=>
+    `<button class="chip" data-m="${k}" aria-pressed="true"><span class="sw" style="background:${v.col}"></span>${v.n}</button>`).join(" ");
+  document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.m;
+    if(filt.methods.has(k)){filt.methods.delete(k);b.classList.add("off");b.setAttribute("aria-pressed","false");}
+    else{filt.methods.add(k);b.classList.remove("off");b.setAttribute("aria-pressed","true");}
+    renderBoard();});
+}
+$("q").oninput=e=>{filt.q=e.target.value;renderBoard();};
+$("fTier").onchange=e=>{filt.tier=e.target.value;renderBoard();};
+$("fScope").onchange=e=>{filt.scope=e.target.value;renderBoard();};
+$("btnSync").onclick=runSync;
+$("btnAdd").onclick=()=>openDrawer(null);
+$("btnExport").onclick=exportJSON;
+$("btnImport").onclick=()=>$("fileImport").click();
+$("fileImport").onchange=e=>{if(e.target.files[0])importJSON(e.target.files[0]);e.target.value="";};
+$("btnReset").onclick=()=>{cards=seedCards();licenses=seedLicenses();nextId=SEED.length+1;renderAll();toast("Reset to the seed inventory.");};
+$("btnClear").onclick=()=>{log=[];renderRail();};
+$("drClose").onclick=closeDrawer;$("drCancel").onclick=closeDrawer;
+$("overlay").onclick=closeDrawer;$("drSave").onclick=saveDrawer;$("drDelete").onclick=deleteCard;
+$("eStage").onchange=e=>e.target.dataset.touched="1";
+$("eMethod").onchange=e=>{if(editId===null&&!$("eStage").dataset.touched)$("eStage").value=e.target.value==="d"?"ts":"rr";};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+
+/* ---------- boot ---------- */
+const t0=new Date(Date.now()-31*60000).toTimeString().slice(0,8);
+log=[
+ {t:t0,ev:"sync.cycle_completed",msg:"Morning Metrc sync — 18 of 20 licenses on schedule, 2 retrying",trig:"scheduler",payload:{event:"sync.cycle_completed",licenses_ok:18,licenses_retrying:2,ts:new Date(Date.now()-31*60000).toISOString()}},
+ {t:t0,ev:"datapoint.captured",msg:"Lab results & COAs — entered Trusted-Source",trig:"intake",payload:{event:"datapoint.captured",name:"Lab results & COAs",to:"Trusted-Source",trigger:"intake"}},
+];
+evTotal=2;
+buildFilters();renderAll();
+</script>
+</body>
+</html>
